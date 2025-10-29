@@ -1,41 +1,49 @@
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
+import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
 
-import appCss from '../styles.css?url'
+import appCss from "../styles.css?url";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const Route = createRootRoute({
-  head: () => ({
-    meta: [
-      {
-        charSet: 'utf-8',
-      },
-      {
-        name: 'viewport',
-        content: 'width=device-width, initial-scale=1',
-      },
-      {
-        title: 'Ethan Potts',
-      },
-    ],
-    links: [
-           { rel: 'stylesheet', href: appCss },
+	head: () => ({
+		meta: [
+			{
+				charSet: "utf-8",
+			},
+			{
+				name: "viewport",
+				content: "width=device-width, initial-scale=1",
+			},
+			{
+				title: "Ethan Potts",
+			},
+		],
+		links: [{ rel: "stylesheet", href: appCss }],
+	}),
 
-    ],
-  }),
-
-  shellComponent: RootDocument,
-})
+	shellComponent: RootDocument,
+});
 
 function RootDocument({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-50">
-        <main>
-          {children}
-        </main>
-        {/* <TanStackDevtools
+	return (
+		<html lang="en">
+			<head>
+				<HeadContent />
+			</head>
+			<body>
+				<ThemeProvider>
+          	<div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-50">
+					<main>
+					<div className="fixed top-4 right-4 z-50  h-12">
+              <ThemeToggle />
+            </div>
+							{children}
+					
+					</main>
+          	</div>
+				</ThemeProvider>
+
+				{/* <TanStackDevtools
           config={{
             position: 'bottom-right',
           }}
@@ -46,8 +54,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             },
           ]}
         /> */}
-        <Scripts />
-      </body>
-    </html>
-  )
+				<Scripts />
+			</body>
+		</html>
+	);
 }

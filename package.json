@@ -32,7 +32,8 @@
     "shiki": "^3.13.0",
     "tailwindcss": "^4.0.6",
     "unified": "^11.0.5",
-    "vite-tsconfig-paths": "^5.1.4"
+    "vite-tsconfig-paths": "^5.1.4",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.13.15",

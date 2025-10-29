@@ -1,1 +1,5 @@
 @import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+@custom-variant light (&:is(.light, .light *));
+@custom-variant auto (&:is(.auto, .auto *));
