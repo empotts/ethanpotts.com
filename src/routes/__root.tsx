@@ -33,7 +33,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<ThemeProvider>
 					<div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-50">
 						<main>
-							<div className="fixed top-4 right-4 z-50  h-12">
+							<div className="fixed top-4 right-4 z-50 h-12">
 								<ThemeToggle />
 							</div>
 							{children}
