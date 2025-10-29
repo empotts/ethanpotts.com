@@ -1,6 +1,6 @@
-import { markdownToHtml } from "@/lib/markdown";
-import { createServerFn } from "@tanstack/react-start";
 import { notFound } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
+import { markdownToHtml } from "@/lib/markdown";
 
 // Import the raw text content for all posts.
 const modules: Record<string, () => Promise<string>> = import.meta.glob<string>(
