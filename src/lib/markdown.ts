@@ -1,4 +1,3 @@
-import theme from "@shikijs/themes/dracula";
 import { transformerStyleToClass } from "@shikijs/transformers";
 import rehypePrettyCode from "rehype-pretty-code";
 import rehypeStringify from "rehype-stringify";
@@ -33,7 +32,6 @@ function process(
 			theme: "dracula",
 			transformers: [extractCss],
 		})
-		.use(rehypePrettyCode)
 		.use(rehypeStringify)
 		.process({
 			data: { ...initialData, css: extractCss },
@@ -43,7 +41,11 @@ function process(
 }
 
 export async function markdownToHtml(value: string, filename: string) {
-	const excerpt = value.substring(0, value.indexOf(EXCERPT_BOUNDARY));
+	const excerptBoundaryIndex = value.indexOf(EXCERPT_BOUNDARY);
+	const excerpt =
+		excerptBoundaryIndex === -1
+			? value
+			: value.substring(0, excerptBoundaryIndex);
 	return process(value, filename, {
 		excerpt: await process(excerpt, filename),
 	});

@@ -1,23 +1,22 @@
 ---
-title: Post Title
+title: Demo Blog Post
 description: This is a sample post
 ---
 
 # This is a test markdown file
 
-I can write posts in **markdown** and have them rendered on my blog.
+I can write posts in **markdown** and have them server-side rendered on my blog.
 
-Inspiration taken from https://www.vseventer.com/blog/implementing-a-simple-blog-with-tanstack-start
+Inspiration taken from [Implementing a simple blog with TanStack Start](https://www.vseventer.com/blog/implementing-a-simple-blog-with-tanstack-start)
 
 
-*Content Here.*
 
 <!-- excerpt -->
 
-More Content Here.
 
 
 ```ts caption="Test.md"
+// I can also show off code excerpts with syntax highlighting
 // Import the raw text content for all posts.
 const modules = import.meta.glob<string>("./*.md", {
   import: "default",
@@ -32,3 +31,5 @@ const posts = await Promise.all(
   }),
 );
 ```
+
+
