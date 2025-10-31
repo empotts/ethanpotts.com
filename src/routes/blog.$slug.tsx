@@ -1,4 +1,4 @@
-import { createFileRoute, useLoaderData } from "@tanstack/react-router";
+import { createFileRoute, Link, useLoaderData } from "@tanstack/react-router";
 import { getPost } from "@/posts/worker";
 
 export const Route = createFileRoute("/blog/$slug")({
@@ -159,8 +159,19 @@ function RouteComponent() {
 
 	return (
 		<article className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-10">
+			<div className="my-4">
+				<Link
+					to="/blog"
+					className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white "
+				>
+					<span aria-hidden className="inline-block no-underline">
+						←
+					</span>
+					<span className="inline-block hover:underline">Back to blog</span>
+				</Link>
+			</div>
 			<header className="mb-6">
-				<h1 className="text-3xl sm:text-4xl font-extrabold  ">
+				<h1 className="text-3xl sm:text-4xl font-extrabold ">
 					{post?.data?.title}
 				</h1>
 

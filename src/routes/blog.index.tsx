@@ -23,7 +23,7 @@ function RouteComponent() {
 				<ul className="space-y-6">
 					{posts.map((post) => (
 						<li key={post.slug}>
-							<article className="bg-white h-[1000px] dark:bg-gray-900 rounded-lg shadow-sm p-4 border border-gray-200 dark:border-gray-700 max-w-xl">
+							<article className="bg-white  dark:bg-gray-900 rounded-lg shadow-sm p-4 border border-gray-200 dark:border-gray-700 max-w-xl">
 								<h2 className="text-xl font-semibold mb-2">
 									<Link
 										to="/blog/$slug"
@@ -40,13 +40,15 @@ function RouteComponent() {
 									dangerouslySetInnerHTML={{ __html: post.html }}
 								/>
 
-								<Link
-									to="/blog/$slug"
-									params={{ slug: post.slug }}
-									className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
-								>
-									Continue reading →
-								</Link>
+								<div className="mt-3">
+									<Link
+										to="/blog/$slug"
+										params={{ slug: post.slug }}
+										className="inline-block text-sm font-medium rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+									>
+										Continue reading →
+									</Link>
+								</div>
 							</article>
 						</li>
 					))}

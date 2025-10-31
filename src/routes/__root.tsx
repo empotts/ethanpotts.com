@@ -1,4 +1,9 @@
-import { createRootRoute, HeadContent, Scripts, useNavigate } from "@tanstack/react-router";
+import {
+	createRootRoute,
+	HeadContent,
+	Scripts,
+	useNavigate,
+} from "@tanstack/react-router";
 import { BookOpen, FileText, Folder, Home } from "lucide-react";
 import Dock from "@/components/Dock";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -36,28 +41,28 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			icon: <Home size={18} />,
 			label: "Home",
 			onClick: () => {
-				navigate({to: "/"});
+				navigate({ to: "/" });
 			},
 		},
 		{
 			icon: <BookOpen size={18} />,
 			label: "Blog",
 			onClick: () => {
-				navigate({to: "/blog"});
+				navigate({ to: "/blog" });
 			},
 		},
 		{
 			icon: <Folder size={18} />,
 			label: "Projects",
 			onClick: () => {
-				navigate({to: "/projects"});
+				navigate({ to: "/projects" });
 			},
 		},
 		{
 			icon: <FileText size={18} />,
 			label: "Resume",
 			onClick: () => {
-				navigate({to: "/resume"});
+				navigate({ to: "/resume" });
 			},
 		},
 	];
@@ -77,7 +82,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 										src={EP}
 										alt="EP"
 										className={
-											"h-12 w-auto transition-filter duration-150 filter dark:invert dark:brightness-200 hover:brightness-90"
+											"h-12 w-auto transition-filter duration-150 filter dark:invert dark:brightness-200 hover:brightness-90 select-none"
 										}
 									/>
 								</a>
@@ -89,7 +94,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 							{children}
 
 							{/* Dock */}
-							<div aria-hidden={false} className="text-gray-900 dark:text-white fixed bottom-4 left-1/2  ">
+							<div
+								aria-hidden={false}
+								className="text-gray-900 dark:text-white fixed bottom-4 left-1/2  "
+							>
 								<Dock
 									items={dockItems}
 									panelHeight={68}
