@@ -158,18 +158,16 @@ function RouteComponent() {
 	const readingTime = post?.data?.readingTime;
 
 	return (
-		<article className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-10">
-			<div className="my-4">
-				<Link
-					to="/blog"
-					className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white "
-				>
-					<span aria-hidden className="inline-block no-underline">
-						←
-					</span>
-					<span className="inline-block hover:underline">Back to blog</span>
-				</Link>
-			</div>
+		<article className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 ">
+			<Link
+				to="/blog"
+				className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white pb-3"
+			>
+				<span aria-hidden className="inline-block no-underline">
+					←
+				</span>
+				<span className="inline-block hover:underline">Back to blog</span>
+			</Link>
 			<header className="mb-6">
 				<h1 className="text-3xl sm:text-4xl font-extrabold ">
 					{post?.data?.title}

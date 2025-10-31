@@ -91,6 +91,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 									<ThemeToggle />
 								</div>
 							</header>
+							<div className="h-20" />
 							{children}
 
 							{/* Dock */}

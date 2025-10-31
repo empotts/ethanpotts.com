@@ -18,12 +18,12 @@ function RouteComponent() {
 		select: (state) => state.posts,
 	});
 	return (
-		<div className="min-h-screen flex flex-col items-center py-6">
-			<div className="  p-6 overflow-y-auto">
+		<div className="min-h-screen flex flex-col items-center ">
+			<div className=" overflow-y-auto">
 				<ul className="space-y-6">
 					{posts.map((post) => (
 						<li key={post.slug}>
-							<article className="bg-white  dark:bg-gray-900 rounded-lg shadow-sm p-4 border border-gray-200 dark:border-gray-700 max-w-xl">
+							<article className="bg-white mx-4 dark:bg-gray-900 rounded-lg shadow-sm p-4 border border-gray-200 dark:border-gray-700 max-w-3xl">
 								<h2 className="text-xl font-semibold mb-2">
 									<Link
 										to="/blog/$slug"
