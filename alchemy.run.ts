@@ -15,6 +15,7 @@ export class Website extends Cloudflare.Website.Vite<Website>()(
 	"Website",
 	Alchemy.Stack.useSync((stack) => ({
 		name: stack.stage === "prod" ? "ethanpotts" : undefined,
+		domain: stack.stage === "prod" ? "ethanpotts.com" : undefined,
 		compatibility: {
 			date: "2025-09-02",
 			flags: ["nodejs_compat"],
