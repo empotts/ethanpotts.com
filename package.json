@@ -12,6 +12,7 @@
 		"format": "biome check . --write"
 	},
 	"dependencies": {
+		"@better-auth/passkey": "^1.6.25",
 		"@tailwindcss/vite": "^4.0.6",
 		"@tanstack/highlight": "^0.0.8",
 		"@tanstack/markdown": "^0.0.12",
