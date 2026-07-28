@@ -1,10 +1,9 @@
 import { env as cloudflareEnv } from "cloudflare:workers";
 
-export interface WebsiteEnv {
-	DB: D1Database;
-	BETTER_AUTH_URL: string;
-	BETTER_AUTH_SECRET: string;
-	ADMIN_OWNER_EMAIL: string;
-}
+import type { WebsiteEnv } from "../alchemy.run";
 
-export const env = cloudflareEnv as unknown as WebsiteEnv;
+export const env = new Proxy({} as WebsiteEnv, {
+	get(_, property) {
+		return cloudflareEnv[property as keyof typeof cloudflareEnv];
+	},
+});

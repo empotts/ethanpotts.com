@@ -1,33 +1,51 @@
-import alchemy from "alchemy";
-import { D1Database, TanStackStart } from "alchemy/cloudflare";
+import * as Alchemy from "alchemy";
+import * as Cloudflare from "alchemy/Cloudflare";
+import * as Config from "effect/Config";
+import * as Effect from "effect/Effect";
 
-const app = await alchemy("ethanpotts", {
-	password: process.env.ALCHEMY_PASSWORD ?? process.env.BETTER_AUTH_SECRET,
-});
+export const Database = Cloudflare.D1.Database(
+	"Database",
+	Alchemy.Stack.useSync((stack) => ({
+		name: stack.stage === "prod" ? "ethanpotts-db" : undefined,
+		migrationsDir: "./drizzle/migrations",
+	})),
+);
 
-export const database = await D1Database("database", {
-	name: app.stage === "prod" ? "ethanpotts-db" : undefined,
-	migrationsDir: "./drizzle/migrations",
-});
+export class Website extends Cloudflare.Website.Vite<Website>()(
+	"Website",
+	Alchemy.Stack.useSync((stack) => ({
+		name: stack.stage === "prod" ? "ethanpotts" : undefined,
+		compatibility: {
+			date: "2025-09-02",
+			flags: ["nodejs_compat"],
+		},
+		assets: {
+			runWorkerFirst: true,
+		},
+		env: {
+			DB: Database,
+			BETTER_AUTH_URL: Config.string("BETTER_AUTH_URL"),
+			BETTER_AUTH_SECRET: Config.redacted("BETTER_AUTH_SECRET"),
+			ADMIN_OWNER_EMAIL: Config.redacted("ADMIN_OWNER_EMAIL"),
+		},
+	})),
+) {}
 
-export const website = await TanStackStart("website", {
-	name: app.stage === "prod" ? "ethanpotts" : undefined,
-	compatibilityDate: "2025-09-02",
-	compatibilityFlags: ["nodejs_compat"],
-	assets: {
-		run_worker_first: true,
+export type WebsiteEnv = Cloudflare.InferEnv<typeof Website>;
+
+export default Alchemy.Stack(
+	"ethanpotts",
+	{
+		providers: Cloudflare.providers(),
+		state: Cloudflare.state(),
 	},
-	bindings: {
-		DB: database,
-		BETTER_AUTH_URL: alchemy.env("BETTER_AUTH_URL"),
-		BETTER_AUTH_SECRET: alchemy.secret.env("BETTER_AUTH_SECRET"),
-		ADMIN_OWNER_EMAIL: alchemy.env("ADMIN_OWNER_EMAIL"),
-	},
-});
+	Effect.gen(function* () {
+		const database = yield* Database;
+		const website = yield* Website;
 
-console.log({
-	databaseId: database.id,
-	url: website.url,
-});
-
-await app.finalize();
+		return {
+			databaseId: database.databaseId.as<string>(),
+			url: website.url.as<string>(),
+		};
+	}),
+);

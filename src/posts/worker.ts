@@ -33,7 +33,7 @@ export const getPosts = createServerFn().handler((): PostSummary[] =>
 );
 
 export const getPost = createServerFn()
-	.inputValidator((slug: string) => slug)
+	.validator((slug: string) => slug)
 	.handler(({ data: slug }) => {
 		const post = posts.find((candidate) => candidate.slug === slug);
 		if (!post) throw notFound();
