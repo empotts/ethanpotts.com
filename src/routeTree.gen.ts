@@ -11,10 +11,14 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ResumeRouteImport } from './routes/resume'
 import { Route as ProjectsRouteImport } from './routes/projects'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as AboutMeRouteImport } from './routes/about-me'
+import { Route as PrivateRouteImport } from './routes/_private'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as PrivatePrivateRouteImport } from './routes/_private/private'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const ResumeRoute = ResumeRouteImport.update({
   id: '/resume',
@@ -26,9 +30,18 @@ const ProjectsRoute = ProjectsRouteImport.update({
   path: '/projects',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AboutMeRoute = AboutMeRouteImport.update({
   id: '/about-me',
   path: '/about-me',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivateRoute = PrivateRouteImport.update({
+  id: '/_private',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -46,60 +59,99 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   path: '/blog/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivatePrivateRoute = PrivatePrivateRouteImport.update({
+  id: '/private',
+  path: '/private',
+  getParentRoute: () => PrivateRoute,
+} as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about-me': typeof AboutMeRoute
+  '/login': typeof LoginRoute
   '/projects': typeof ProjectsRoute
   '/resume': typeof ResumeRoute
+  '/private': typeof PrivatePrivateRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog': typeof BlogIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about-me': typeof AboutMeRoute
+  '/login': typeof LoginRoute
   '/projects': typeof ProjectsRoute
   '/resume': typeof ResumeRoute
+  '/private': typeof PrivatePrivateRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog': typeof BlogIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_private': typeof PrivateRouteWithChildren
   '/about-me': typeof AboutMeRoute
+  '/login': typeof LoginRoute
   '/projects': typeof ProjectsRoute
   '/resume': typeof ResumeRoute
+  '/_private/private': typeof PrivatePrivateRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/': typeof BlogIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/about-me'
+    | '/login'
     | '/projects'
     | '/resume'
+    | '/private'
     | '/blog/$slug'
     | '/blog'
+    | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about-me' | '/projects' | '/resume' | '/blog/$slug' | '/blog'
+  to:
+    | '/'
+    | '/about-me'
+    | '/login'
+    | '/projects'
+    | '/resume'
+    | '/private'
+    | '/blog/$slug'
+    | '/blog'
+    | '/api/auth/$'
   id:
     | '__root__'
     | '/'
+    | '/_private'
     | '/about-me'
+    | '/login'
     | '/projects'
     | '/resume'
+    | '/_private/private'
     | '/blog/$slug'
     | '/blog/'
+    | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  PrivateRoute: typeof PrivateRouteWithChildren
   AboutMeRoute: typeof AboutMeRoute
+  LoginRoute: typeof LoginRoute
   ProjectsRoute: typeof ProjectsRoute
   ResumeRoute: typeof ResumeRoute
   BlogSlugRoute: typeof BlogSlugRoute
   BlogIndexRoute: typeof BlogIndexRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -118,11 +170,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjectsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/about-me': {
       id: '/about-me'
       path: '/about-me'
       fullPath: '/about-me'
       preLoaderRoute: typeof AboutMeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_private': {
+      id: '/_private'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof PrivateRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -146,16 +212,44 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_private/private': {
+      id: '/_private/private'
+      path: '/private'
+      fullPath: '/private'
+      preLoaderRoute: typeof PrivatePrivateRouteImport
+      parentRoute: typeof PrivateRoute
+    }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface PrivateRouteChildren {
+  PrivatePrivateRoute: typeof PrivatePrivateRoute
+}
+
+const PrivateRouteChildren: PrivateRouteChildren = {
+  PrivatePrivateRoute: PrivatePrivateRoute,
+}
+
+const PrivateRouteWithChildren =
+  PrivateRoute._addFileChildren(PrivateRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  PrivateRoute: PrivateRouteWithChildren,
   AboutMeRoute: AboutMeRoute,
+  LoginRoute: LoginRoute,
   ProjectsRoute: ProjectsRoute,
   ResumeRoute: ResumeRoute,
   BlogSlugRoute: BlogSlugRoute,
   BlogIndexRoute: BlogIndexRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

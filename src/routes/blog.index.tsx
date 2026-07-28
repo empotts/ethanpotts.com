@@ -1,11 +1,11 @@
 import {
 	createFileRoute,
 	Link,
-	Outlet,
 	useLoaderData,
 } from "@tanstack/react-router";
 
 import { getPosts } from "@/posts/worker";
+import type { PostSummary } from "@/posts/worker";
 
 export const Route = createFileRoute("/blog/")({
 	loader: async () => ({ posts: await getPosts() }),
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/blog/")({
 function RouteComponent() {
 	const posts = useLoaderData({
 		from: "/blog/",
-		select: (state) => state.posts,
+		select: (state) => state.posts as PostSummary[],
 	});
 	return (
 		<div className="min-h-screen flex flex-col items-center ">

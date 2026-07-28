@@ -8,6 +8,8 @@ count.txt
 .nitro
 .tanstack
 .wrangler
+.alchemy
 .output
 .vinxi
 todos.json
+.env.production

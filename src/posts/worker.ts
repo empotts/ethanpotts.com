@@ -2,7 +2,6 @@ import { notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { markdownToHtml } from "@/lib/markdown";
 
-// Import the raw text content for all posts.
 const modules: Record<string, () => Promise<string>> = import.meta.glob<string>(
 	"./*.md",
 	{
@@ -11,51 +10,38 @@ const modules: Record<string, () => Promise<string>> = import.meta.glob<string>(
 	},
 );
 
-// For each module, we need to parse the post.
-const posts = (await Promise.all(
-	Object.entries(modules).map(async ([filename, module]) => {
-		const value = await module(); // Raw text content as string.
-		return markdownToHtml(value, filename);
-	}),
-)) as unknown[];
+const posts = await Promise.all(
+	Object.entries(modules).map(async ([filename, module]) =>
+		markdownToHtml(await module(), filename),
+	),
+);
 
-export const getPosts = createServerFn().handler(() => {
-	return posts.map((post) => {
-		const d = post.data as unknown as Record<string, unknown>;
-		const excerpt = (d?.excerpt ?? null) as unknown;
-		const excerptData = excerpt as unknown as {
-			data?: { css?: { getCSS?: () => string } };
-		};
-		// pull slug fields safely
-		const meta = post as unknown as { stem?: string; basename?: string };
-		return {
-			data: (d?.frontmatter ?? {}) as Record<string, unknown>,
-			css: excerptData?.data?.css?.getCSS?.() ?? "",
-			html: String(excerpt ?? post),
-			slug: meta.stem ?? meta.basename ?? "",
-		};
-	});
-});
+export interface PostSummary {
+	data: Record<string, string>;
+	css: string;
+	html: string;
+	slug: string;
+}
+
+export const getPosts = createServerFn().handler((): PostSummary[] =>
+	posts.map((post) => ({
+		data: post.data,
+		css: post.css,
+		html: post.excerptHtml,
+		slug: post.slug,
+	})),
+);
 
 export const getPost = createServerFn()
-	.inputValidator((slug: string) => {
-		const post = posts.find((p) => {
-			const meta = p as unknown as { stem?: string; basename?: string };
-			return meta.stem === slug || meta.basename === slug;
-		});
-		if (!post) {
-			throw notFound();
-		}
-		return post as unknown as VFile;
-	})
-	.handler(({ data: post }) => {
-		const d = post.data as unknown as Record<string, unknown>;
-		const meta = post as unknown as { stem?: string; basename?: string };
-		const dCss = d as unknown as { css?: { getCSS?: () => string } };
+	.inputValidator((slug: string) => slug)
+	.handler(({ data: slug }) => {
+		const post = posts.find((candidate) => candidate.slug === slug);
+		if (!post) throw notFound();
+
 		return {
-			data: (d?.frontmatter ?? {}) as Record<string, unknown>,
-			css: dCss?.css?.getCSS?.() ?? "",
-			html: String(post),
-			slug: meta.stem ?? meta.basename ?? "",
+			data: post.data,
+			css: post.css,
+			html: post.html,
+			slug: post.slug,
 		};
 	});

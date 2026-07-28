@@ -6,7 +6,8 @@ To run this application:
 
 ```bash
 pnpm install
-pnpm start
+cp .env.local.example .env.local
+pnpm dev
 ```
 
 # Building For Production
@@ -16,6 +17,28 @@ To build this application for production:
 ```bash
 pnpm build
 ```
+
+## Private area
+
+The public site is unchanged. `/login` and `/private` provide an owner-only
+area backed by Better Auth and Cloudflare D1. The email in
+`ADMIN_OWNER_EMAIL` is always treated as the owner; all other new accounts stay
+pending and cannot enter protected routes.
+
+Alchemy manages the Worker, D1 database, bindings, secrets, and migrations.
+Production configuration lives in the ignored `.env.production` file; its
+committed `.env.production.example` documents the required values.
+
+```bash
+pnpm check
+pnpm deploy
+```
+
+## Markdown
+
+Blog posts are parsed with TanStack Markdown and code fences are highlighted
+with the selectively loaded TanStack Highlight languages. Highlight themes are
+class-based and switch with the site's existing light/dark mode.
 
 ## Testing
 

@@ -17,7 +17,7 @@ Inspiration taken from [Implementing a simple blog with TanStack Start](https://
 
 
 
-```ts caption="Test.md"
+```ts title="Test.md"
 // I can also show off code excerpts with syntax highlighting
 // Import the raw text content for all posts.
 const modules = import.meta.glob<string>("./*.md", {
@@ -33,5 +33,4 @@ const posts = await Promise.all(
   }),
 );
 ```
-
 
