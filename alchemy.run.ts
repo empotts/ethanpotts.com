@@ -20,9 +20,6 @@ export class Website extends Cloudflare.Website.Vite<Website>()(
 			date: "2025-09-02",
 			flags: ["nodejs_compat"],
 		},
-		assets: {
-			runWorkerFirst: true,
-		},
 		env: {
 			DB: Database,
 			BETTER_AUTH_URL: Config.string("BETTER_AUTH_URL"),
