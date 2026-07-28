@@ -38,12 +38,16 @@ function render(value: string) {
 }
 
 export function markdownToHtml(value: string, filename: string) {
-	const document = parseMarkdown(value);
 	const excerptBoundaryIndex = value.indexOf(EXCERPT_BOUNDARY);
 	const excerpt =
 		excerptBoundaryIndex === -1
 			? value
 			: value.substring(0, excerptBoundaryIndex);
+	const content =
+		excerptBoundaryIndex === -1
+			? value
+			: `${excerpt}${value.substring(excerptBoundaryIndex + EXCERPT_BOUNDARY.length)}`;
+	const document = parseMarkdown(content);
 
 	return {
 		data: document.frontmatter
