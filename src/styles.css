@@ -1,7 +1,10 @@
 @import "tailwindcss";
 
 @theme {
-	--font-pixel: "Pixelify Sans", ui-monospace, monospace;
+	/* Interface text: crisp on any screen. */
+	--font-ui: "IBM Plex Mono", ui-monospace, monospace;
+	/* Pixel face, kept only as a reading option for articles. */
+	--font-retro: "Pixelify Sans", ui-monospace, monospace;
 	--font-mono: "IBM Plex Mono", ui-monospace, monospace;
 	--font-read-sans: "Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif;
 	--font-read-serif: "Literata", Georgia, serif;
@@ -37,7 +40,6 @@ html {
 	color: var(--fg);
 	font-family: var(--font-mono);
 	font-size: 15px;
-	-webkit-font-smoothing: none;
 	transition: background-color 0.2s, color 0.2s;
 }
 body {
@@ -53,6 +55,9 @@ body {
 	text-shadow: 0 0 4px color-mix(in srgb, var(--fg) 45%, transparent);
 }
 h1, h2, h3 { text-wrap: balance; }
+@layer base {
+	.font-ui { font-weight: 500; }
+}
 p, li { text-wrap: pretty; }
 
 /* sparse pixel dither for the desktop (2 of every 16 pixels) */
@@ -79,7 +84,7 @@ p, li { text-wrap: pretty; }
 	border-radius: 8px;
 	background: var(--bg);
 	padding: 0.25rem 1rem;
-	font-family: var(--font-pixel);
+	font-family: var(--font-ui);
 	transition-property: transform;
 	transition-duration: 100ms;
 }
@@ -103,7 +108,7 @@ p, li { text-wrap: pretty; }
 	line-height: 1.7;
 }
 .doc h1, .doc h2, .doc h3 {
-	font-family: var(--font-pixel);
+	font-family: var(--font-ui);
 	line-height: 1.15;
 	margin: 1.8rem 0 0.6rem;
 }
@@ -128,7 +133,8 @@ p, li { text-wrap: pretty; }
 .doc[data-font="sans"] { font-family: var(--font-read-sans); -webkit-font-smoothing: antialiased; }
 .doc[data-font="serif"] { font-family: var(--font-read-serif); -webkit-font-smoothing: antialiased; }
 .doc[data-font="mono"] { font-family: var(--font-mono); }
-.doc[data-font="pixel"] { font-family: var(--font-pixel); }
+.doc[data-font="pixel"] { font-family: var(--font-retro); }
+.doc[data-font="pixel"] :is(h1, h2, h3) { font-family: inherit; }
 .doc[data-font="sans"] :is(h1, h2, h3),
 .doc[data-font="serif"] :is(h1, h2, h3),
 .doc[data-font="mono"] :is(h1, h2, h3) {

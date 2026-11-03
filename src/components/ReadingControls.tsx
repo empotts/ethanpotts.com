@@ -63,7 +63,7 @@ function Segment<T extends string>({
 					title={o.title ?? o.label}
 					aria-label={o.title ?? o.label}
 					onClick={() => onChange(o.id)}
-					className={`min-h-8 min-w-10 border-l-2 border-black px-2.5 font-pixel text-sm first:border-l-0 ${value === o.id ? "bg-black text-white" : "hover:bg-black/10"}`}
+					className={`min-h-8 min-w-10 border-l-2 border-black px-2.5 font-ui text-sm first:border-l-0 ${value === o.id ? "bg-black text-white" : "hover:bg-black/10"}`}
 				>
 					{render ? render(o) : o.label}
 				</button>
@@ -76,7 +76,7 @@ export function ReadingControls({ prefs }: { prefs: ReturnType<typeof useReading
 	const sizePx: Record<ReadingSize, string> = { s: "12px", m: "15px", l: "19px" };
 	return (
 		<div className="flex flex-wrap items-center gap-3 px-3 py-2">
-			<span className="hidden font-pixel text-xs sm:inline">Font</span>
+			<span className="hidden font-ui text-xs sm:inline">Font</span>
 			<Segment
 				label="Reading font"
 				options={READING_FONTS}
@@ -86,14 +86,14 @@ export function ReadingControls({ prefs }: { prefs: ReturnType<typeof useReading
 					<span
 						style={{
 							fontFamily:
-								o.id === "sans" ? "var(--font-read-sans)" : o.id === "serif" ? "var(--font-read-serif)" : o.id === "mono" ? "var(--font-mono)" : "var(--font-pixel)",
+								o.id === "sans" ? "var(--font-read-sans)" : o.id === "serif" ? "var(--font-read-serif)" : o.id === "mono" ? "var(--font-mono)" : "var(--font-retro)",
 						}}
 					>
 						{o.label}
 					</span>
 				)}
 			/>
-			<span className="hidden font-pixel text-xs sm:inline">Size</span>
+			<span className="hidden font-ui text-xs sm:inline">Size</span>
 			<Segment
 				label="Text size"
 				options={READING_SIZES}

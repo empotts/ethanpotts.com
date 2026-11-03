@@ -69,7 +69,7 @@ export function Window({
 					aria-label={`Close ${title}`}
 					className="relative size-4 shrink-0 border-2 border-black bg-white after:absolute after:-inset-3 after:content-[''] hover:bg-black"
 				/>
-				<h2 className="mx-auto bg-white px-2 font-pixel text-sm leading-none">{title}</h2>
+				<h2 className="mx-auto bg-white px-2 font-ui text-sm leading-none">{title}</h2>
 				<span className="size-4 shrink-0" />
 			</header>
 			<div className="scroll-retro min-h-0 flex-1 overflow-auto">{children}</div>

@@ -60,7 +60,7 @@ function MenuBar() {
 	const time = useClock();
 	const [menu, setMenu] = useState(false);
 	return (
-		<div className="fixed inset-x-0 top-0 z-[100] flex h-8 items-center gap-0.5 border-b-2 sm:gap-1 border-black bg-white px-2 font-pixel text-[15px]">
+		<div className="fixed inset-x-0 top-0 z-[100] flex h-8 items-center gap-0.5 border-b-2 sm:gap-1 border-black bg-white px-2 font-ui text-[15px]">
 			<div className="relative">
 				<button type="button" onClick={() => setMenu((m) => !m)} className={`px-2 py-0.5 sm:px-3 ${menu ? "bg-black text-white" : ""}`}>
 					EP
@@ -110,7 +110,7 @@ function DeskIcon({ icon, label, onOpen }: { icon: IconName | "logo"; label: str
 			) : (
 				<PixelIcon name={icon} size={40} inverted={sel} />
 			)}
-			<span className={`px-1 font-pixel text-[13px] leading-tight ${sel ? "bg-black text-white" : "bg-white"}`}>{label}</span>
+			<span className={`px-1 font-ui text-[13px] leading-tight ${sel ? "bg-black text-white" : "bg-white"}`}>{label}</span>
 		</button>
 	);
 }
@@ -135,7 +135,7 @@ function ProjectsWin({ onClose, onOpen, selected, setSelected }: { onClose: () =
 							className="flex flex-col items-center gap-1 outline-none"
 						>
 							<PixelIcon name={p.href ? "app" : "folder"} size={36} inverted={active} />
-							<span className={`max-w-full px-1 text-center font-pixel text-[13px] leading-tight ${active ? "bg-black text-white" : ""}`}>{p.name}</span>
+							<span className={`max-w-full px-1 text-center font-ui text-[13px] leading-tight ${active ? "bg-black text-white" : ""}`}>{p.name}</span>
 						</button>
 					);
 				})}
@@ -151,7 +151,7 @@ function ProjectWin({ p, onClose }: { p: Project; onClose: () => void }) {
 				<div className="flex items-center gap-3">
 					<PixelIcon name={p.href ? "app" : "folder"} size={40} />
 					<div>
-						<h3 className="font-pixel text-xl leading-tight">{p.name}</h3>
+						<h3 className="font-ui text-xl leading-tight">{p.name}</h3>
 						<div className="text-xs">
 							{p.kind} · {p.year}
 						</div>
@@ -188,7 +188,7 @@ function WorkWin({ onClose }: { onClose: () => void }) {
 				{experience.map((e) => (
 					<article key={e.role + e.start} className="p-5">
 						<div className="flex flex-wrap items-baseline justify-between gap-2">
-							<h3 className="font-pixel text-lg leading-tight">{e.role}</h3>
+							<h3 className="font-ui text-lg leading-tight">{e.role}</h3>
 							<span className="text-xs tabular-nums">
 								{e.start} – {e.end}
 							</span>
@@ -206,7 +206,7 @@ function WorkWin({ onClose }: { onClose: () => void }) {
 				))}
 				<div className="dither-light grid gap-4 p-5 sm:grid-cols-2">
 					<div className="win p-4">
-						<h3 className="font-pixel">Education</h3>
+						<h3 className="font-ui">Education</h3>
 						<p className="mt-1 text-sm">{education.school}</p>
 						<p className="text-sm">
 							{education.degree}, {education.year}
@@ -214,7 +214,7 @@ function WorkWin({ onClose }: { onClose: () => void }) {
 						<p className="text-sm">{education.honors}</p>
 					</div>
 					<div className="win p-4">
-						<h3 className="font-pixel">Awards</h3>
+						<h3 className="font-ui">Awards</h3>
 						<ul className="mt-1 text-sm">
 							{awards.map((a) => (
 								<li key={a.name}>{a.name}</li>
@@ -236,7 +236,7 @@ function WritingWin({ onClose, posts }: { onClose: () => void; posts: PostSummar
 						<Link to="/blog/$slug" params={{ slug: post.slug }} className="flex items-center gap-3 p-2 hover:bg-black hover:text-white">
 							<PixelIcon name="doc" size={28} />
 							<span>
-								<span className="block font-pixel leading-tight">{String(post.data?.title ?? "Untitled")}</span>
+								<span className="block font-ui leading-tight">{String(post.data?.title ?? "Untitled")}</span>
 								{post.data?.description && <span className="block text-xs">{post.data.description}</span>}
 							</span>
 						</Link>
@@ -254,7 +254,7 @@ function AboutWin({ onClose }: { onClose: () => void }) {
 				<div className="flex items-center gap-4">
 					<Logo size={64} />
 					<div>
-						<h1 className="font-pixel text-4xl leading-none">{profile.name}</h1>
+						<h1 className="font-ui text-3xl leading-none font-semibold tracking-tight">{profile.name}</h1>
 						<p className="mt-1 text-sm">{profile.location}</p>
 					</div>
 				</div>
