@@ -21,7 +21,7 @@ export class Website extends Cloudflare.Website.Vite<Website>()(
 			flags: ["nodejs_compat"],
 		},
 		assets: {
-			runWorkerFirst: true,
+			runWorkerFirst: false,
 		},
 		env: {
 			DB: Database,
