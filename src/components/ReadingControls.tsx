@@ -61,6 +61,7 @@ function Segment<T extends string>({
 					role="radio"
 					aria-checked={value === o.id}
 					title={o.title ?? o.label}
+					aria-label={o.title ?? o.label}
 					onClick={() => onChange(o.id)}
 					className={`min-h-8 min-w-10 border-l-2 border-black px-2.5 font-pixel text-sm first:border-l-0 ${value === o.id ? "bg-black text-white" : "hover:bg-black/10"}`}
 				>
