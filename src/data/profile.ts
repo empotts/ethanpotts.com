@@ -203,6 +203,7 @@ export const projects: Project[] = [
 		oneLiner: "Multiplayer crosswords where clues link across boards.",
 		description: "Each player gets a different grid. Shared letters show up on everyone's board.",
 		stack: ["Durable Objects", "Puzzle generation", "React"],
+		href: "https://crossword-archipelago.ethanmpotts.workers.dev",
 		color: "#00b3a4",
 		featured: true,
 	},
@@ -214,6 +215,7 @@ export const projects: Project[] = [
 		oneLiner: "Practice marching drill in first person.",
 		description: "Load a marching show and walk your own spot on the field in 3D.",
 		stack: ["Three.js", "TypeScript", "File formats"],
+		href: "https://drill-sim.ethanmpotts.workers.dev",
 		color: "#2fbf4a",
 		featured: true,
 	},
@@ -225,6 +227,7 @@ export const projects: Project[] = [
 		oneLiner: "Pro cycling rankings from scraped race history.",
 		description: "Rankings for pro cyclists, built from scraped race results.",
 		stack: ["TanStack Start", "D1", "R2", "Playwright"],
+		href: "https://velorank.ethanmpotts.workers.dev",
 		color: "#ffd400",
 		featured: true,
 	},
@@ -236,6 +239,7 @@ export const projects: Project[] = [
 		oneLiner: "The platform behind my photography business.",
 		description: "Galleries, events and booking for my photography business.",
 		stack: ["TanStack Start", "D1", "Better Auth", "Passkeys"],
+		href: "https://pottsshotts.com",
 		color: "#ff8fb1",
 		featured: true,
 	},
@@ -290,6 +294,7 @@ export const projects: Project[] = [
 		description: "Every possible Catan board, each with its own address.",
 		stack: ["JavaScript", "Combinatorics"],
 		repo: "https://github.com/empotts/every-catan-board",
+		href: "https://every-catan-board.ethanmpotts.workers.dev",
 		color: "#d9822b",
 	},
 	{
@@ -326,6 +331,12 @@ export const projects: Project[] = [
 		color: "#8fd3c7",
 	},
 ];
+
+/**
+ * Projects with something public to show: a live site or a public repo.
+ * Private repos are never linked; private projects without a site are hidden.
+ */
+export const publicProjects = projects.filter((p) => p.href || p.repo);
 
 export const skills = {
 	daily: ["TypeScript", "React", "TanStack Start", "Temporal", "PostgreSQL", "RabbitMQ"],
