@@ -1,8 +1,7 @@
 /**
  * Single source of truth for site content. Every design reads from here.
  *
- * Career/education details come from Ethan's self-reported notes (LinkedIn was
- * not reachable when this was written) — verify titles and dates before launch.
+ * Career and education come from Ethan's LinkedIn (linkedin.com/in/ethanmpotts).
  */
 
 export const profile = {
@@ -10,19 +9,23 @@ export const profile = {
 	first: "Ethan",
 	last: "Potts",
 	initials: "EP",
+	pronouns: "He/Him",
 	role: "Software Engineer",
-	company: "SupplyPike, an SPS Commerce company",
-	location: "Northwest Arkansas",
+	team: "Revenue Recovery",
+	company: "SPS Commerce",
+	headline: "Software Engineer | Revenue Recovery @ SPS Commerce",
+	location: "Rogers, Arkansas",
 	timezone: "America/Chicago",
 	email: "ethanmpotts@gmail.com",
 	github: "https://github.com/empotts",
 	githubHandle: "empotts",
+	linkedin: "https://www.linkedin.com/in/ethanmpotts",
 	tagline:
-		"Biomedical engineer turned software engineer. I build TypeScript apps on the edge, shoot marching band photos, and watch way too much pro cycling.",
+		"I build revenue recovery software at SPS Commerce, turning messy retailer data into workflows that get suppliers paid. Off the clock: marching band photos, side projects on Cloudflare, and too much pro cycling.",
 	shortBio: [
-		"I'm a software engineer at SupplyPike (an SPS Commerce company) in Northwest Arkansas, working on the retail-supplier side of the world: deductions, EDI data, and the workflow plumbing that keeps it moving.",
-		"I studied Biomedical Engineering with a CS minor at the University of Arkansas, did gene-editing research, then figured out I liked shipping software even more than pipetting.",
-		"Off the clock I run PottsShotts Photography, shoot for the Razorback Marching Band, build too many side projects on Cloudflare, and follow every Grand Tour stage.",
+		"I'm a software engineer at SPS Commerce, where I build revenue recovery applications that help teams turn complex retailer data into actionable workflows: ingestion, dispute submission, repayment tracking, onboarding.",
+		"My work spans full-stack development, data pipelines, integrations and automation. I like understanding a problem, building a practical solution, and making it reliable and easy to use. Lately that means AI workflows, and I'm sharpening that through the MEGA.dev AI Engineering course.",
+		"Before software I did biomedical engineering research: cardiovascular imaging in one lab, gene editing in another. That plus photography shaped how I work: stay curious, work carefully with evidence, and communicate clearly.",
 	],
 } as const;
 
@@ -39,62 +42,95 @@ export type Experience = {
 
 export const experience: Experience[] = [
 	{
-		org: "SupplyPike · SPS Commerce",
-		role: "Software Engineer I",
-		start: "2024",
+		org: "SPS Commerce",
+		role: "Software Engineer · Revenue Recovery",
+		start: "Mar 2026",
 		end: "Now",
-		place: "Fayetteville / Rogers, AR",
+		place: "Rogers, AR · Hybrid",
 		blurb:
-			"Climbed from intern → associate → SWE I building tools that help suppliers win against retailer deductions.",
+			"Revenue recovery workflows for multiple retailers, from data ingestion and dispute submission to repayment tracking and onboarding.",
 		bullets: [
-			"Navigator: turning SPS EDI data into multi-retailer deduction insights.",
-			"Shipped across the CVS and Walgreens retailer teams in a large TypeScript monorepo.",
-			"Durable workflows with Temporal + RabbitMQ; NestJS, Prisma and PostgreSQL services; React front ends.",
+			"Built a shared AI workflow on Amazon Bedrock that analyzes retailer dispute responses, matching them to disputes before model analysis and routing unmatched responses to review.",
+			"Built a hermetic end-to-end suite covering 32 production-boundary contracts across the web app, worker, queue processor and gateway.",
+			"Retailer integrations and automated workflows with TypeScript, Temporal, PostgreSQL, RabbitMQ and AWS on Kubernetes.",
+			"Reliability via idempotent submission checks, OpenTelemetry tracing, CI, mutation testing and incident analysis.",
 		],
-		tags: ["TypeScript", "React", "NestJS", "Temporal", "RabbitMQ", "Postgres"],
+		tags: ["TypeScript", "Temporal", "Bedrock", "Postgres", "RabbitMQ", "K8s"],
 	},
 	{
-		org: "PottsShotts Photography",
-		role: "Founder & Photographer",
-		start: "2023",
-		end: "Now",
-		place: "Northwest Arkansas",
+		org: "SPS Commerce",
+		role: "Associate Software Engineer",
+		start: "Dec 2024",
+		end: "Mar 2026",
+		place: "Rogers, AR",
 		blurb:
-			"Sports, events and marching-arts photography, plus the custom software that runs the business.",
+			"Helped build Navigator, the multi-retailer app that lets the revenue recovery product add new retailers.",
 		bullets: [
-			"Event galleries, participant lookup and client contact built on TanStack Start + Cloudflare D1.",
-			"Wrote a type-safe TypeScript SDK for the SmugMug API to automate delivery.",
+			"Stood up Navigator on TanStack Start with search, filtering and streaming exports.",
+			"Dispute submission and repayment workflows on Temporal + Mailgun, including inbound email and attachments.",
+			"Built a RabbitMQ → Temporal queue processor for Core events and automated onboarding.",
+			"Automated disputing with readiness checks, supplier settings, daily limits and post-refresh execution.",
 		],
-		tags: ["Canon R5", "Lightroom", "Premiere", "Cloudflare"],
+		tags: ["TanStack Start", "Temporal", "Mailgun", "Prisma"],
+	},
+	{
+		org: "SupplyPike",
+		role: "Software Engineer I → Intern",
+		start: "May 2024",
+		end: "Jan 2025",
+		place: "Rogers, AR",
+		blurb:
+			"Joined as an intern, stayed through the SPS Commerce acquisition. Laid the foundation for the Walgreens app and shipped CVS features.",
+		bullets: [
+			"Cut a payment sync step from 30+ minutes to a couple of minutes by threading a document ID through the workflow.",
+			"Built the Walgreens pipeline: ingest retailer files to S3, transform into deductions, detect duplicates and changes.",
+			"Helped split a single-retailer codebase into shared + retailer-specific packages with separate deployments.",
+			"CVS dashboards, exports, archiving, bulk disputes, redisputes and payment reconciliation.",
+		],
+		tags: ["React", "PostgreSQL", "AWS S3", "Monorepo"],
 	},
 	{
 		org: "University of Arkansas Bands",
-		role: "Photographer, Videographer & Social Media",
-		start: "2020",
+		role: "Social Media Manager",
+		start: "Jan 2024",
 		end: "Now",
 		place: "Fayetteville, AR",
 		blurb:
-			"Game days, halftime shows, drumline, parades. Former trumpet section leader in the Razorback Marching Band.",
+			"Photo + video for the Razorback Marching Band, Hogwild Basketball Band and UA Concert Bands.",
 		bullets: [
-			"Shoots and edits photo/video content for the Razorback Marching Band's channels.",
-			"Built analytics tooling tracking Facebook + Instagram growth across a 79-band watchlist.",
-			"Former president, Kappa Kappa Psi — Lambda Chapter.",
+			"2M+ Instagram impressions and 15% follower growth during the 2025 marching season.",
+			"Half of the media team behind the RMB's 2027 Macy's Thanksgiving Day Parade selection announcement.",
 		],
-		tags: ["Photo", "Video", "Social"],
+		tags: ["Photo", "Video", "Strategy"],
 	},
 	{
-		org: "Nelson Lab · University of Arkansas",
-		role: "Undergraduate Researcher",
-		start: "2022",
-		end: "2024",
+		org: "PottsShotts Photography",
+		role: "Owner",
+		start: "Apr 2023",
+		end: "Now",
+		place: "Rogers, AR",
+		blurb:
+			"Sports and marching arts photography across Arkansas and beyond: AMAA and WGI events, plus a stint as intern photographer for the Winston-Salem Dash (MiLB).",
+		bullets: [
+			"One of Arkansas' leading marching arts photography providers.",
+			"Runs on software I built: galleries, events and a type-safe SmugMug SDK.",
+		],
+		tags: ["Canon", "Lightroom", "Premiere"],
+	},
+	{
+		org: "Cardiovascular Biomechanics Lab",
+		role: "Undergraduate Research Assistant",
+		start: "Jan 2021",
+		end: "Jan 2024",
 		place: "Fayetteville, AR",
 		blurb:
-			"Honors thesis on promoterless CRISPR-Cas9 integration of human Factor IX in C2C12 muscle cells.",
+			"Dr. Morten Jensen's lab: cardiovascular imaging and signal processing.",
 		bullets: [
-			"Illumina + Nanopore sequencing analysis with HISAT2, DESeq2 and IGV on custom genomes.",
-			"MATLAB image analysis: HSV segmentation, SLIC superpixels, Delta-E color metrics.",
+			"Left ventricle flow: Blood Speckle Imaging of hemodynamics in children with congenital heart defects. Gel phantoms, ultrasound, MATLAB.",
+			"Peripheral venous pressure: predicting hemorrhage blood loss from heart signals.",
+			"Helped write and edit multiple manuscripts for submission.",
 		],
-		tags: ["CRISPR", "Bioinformatics", "MATLAB"],
+		tags: ["MATLAB", "Ultrasound", "Signals"],
 	},
 ];
 
@@ -102,9 +138,31 @@ export const education = {
 	school: "University of Arkansas",
 	degree: "B.S. Biomedical Engineering",
 	minor: "Minor in Computer Science",
+	years: "2020 – 2024",
 	year: "2024",
-	gpa: "4.0",
+	honors: "Summa Cum Laude · First Ranked Senior Scholar",
+	thesis:
+		"Honors thesis: Transcriptomic Profiling of Engineered Human Gene Integration in the Mouse Genome Following In Vitro Gene Editing (Dr. Christopher Nelson).",
+	activities: [
+		"President, Kappa Kappa Psi — Lambda Chapter",
+		"Section Leader, Razorback Marching Band",
+		"Tau Beta Pi",
+		"McMillon Innovation Studio project lead",
+	],
+	grad: "Graduate coursework in Computer Science, 2024: algorithms, databases, mobile full-stack",
 };
+
+export const awards = [
+	{
+		name: "J. Lee Burke Student Achievement Award",
+		from: "Kappa Kappa Psi",
+		year: "2024",
+		note: "The fraternity's highest honor for an active member.",
+	},
+	{ name: "Summa Cum Laude", from: "University of Arkansas", year: "2024", note: "First Ranked Senior Scholar." },
+	{ name: "Responsive Web Design", from: "freeCodeCamp", year: "2024", note: "Certification." },
+	{ name: "National AP Scholar", from: "College Board", year: "2020", note: "Rogers High School." },
+];
 
 export type Project = {
 	slug: string;
@@ -293,13 +351,14 @@ export const projects: Project[] = [
 ];
 
 export const skills = {
-	daily: ["TypeScript", "React", "TanStack Start", "Node", "NestJS", "PostgreSQL"],
-	infra: ["Cloudflare Workers", "Durable Objects", "D1", "Temporal", "RabbitMQ", "Alchemy"],
+	daily: ["TypeScript", "React", "TanStack Start", "Temporal", "PostgreSQL", "RabbitMQ"],
+	infra: ["AWS", "Amazon Bedrock", "Kubernetes", "OpenTelemetry", "Cloudflare Workers", "Durable Objects"],
 	also: ["Python", "C++", "Swift", "MATLAB", "R", "Three.js"],
 };
 
 export const currently = [
-	{ label: "Building", value: "this website (again)" },
+	{ label: "Building", value: "AI dispute workflows" },
+	{ label: "Learning", value: "MEGA.dev AI Engineering" },
 	{ label: "Shooting", value: "Razorback game days" },
 	{ label: "Playing", value: "Hollow Knight: Silksong" },
 	{ label: "Watching", value: "every Grand Tour stage" },
@@ -307,7 +366,8 @@ export const currently = [
 ];
 
 export const funFacts = [
-	"Went from CRISPR to cron jobs.",
+	"Went from ultrasound phantoms to Temporal workflows.",
+	"Helped get the Razorback Marching Band to the Macy's Parade (well, the announcement).",
 	"Owns more lenses than is reasonable.",
 	"Used to play trumpet; now just photographs the people who do.",
 	"Has opinions about Tour de France stage profiles.",
