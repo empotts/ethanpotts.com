@@ -10,7 +10,7 @@ function useClock() {
 	const [t, setT] = useState("");
 	useEffect(() => {
 		const tick = () =>
-			setT(new Date().toLocaleTimeString("en-US", { timeZone: profile.timezone, weekday: "short", hour: "numeric", minute: "2-digit" }));
+			setT(new Date().toLocaleTimeString("en-US", { timeZone: profile.timezone, hour: "numeric", minute: "2-digit" }));
 		tick();
 		const id = setInterval(tick, 15_000);
 		return () => clearInterval(id);
@@ -48,7 +48,7 @@ function MenuBar() {
 			<Link to="/projects" className="px-3 py-0.5 hover:bg-black hover:text-white">Projects</Link>
 			<Link to="/resume" className="px-3 py-0.5 hover:bg-black hover:text-white">Work</Link>
 			<Link to="/blog" className="px-3 py-0.5 hover:bg-black hover:text-white">Writing</Link>
-			<span className="ml-auto px-2 tabular-nums">{time}</span>
+			<span className="ml-auto px-2 whitespace-nowrap tabular-nums">{time}</span>
 		</div>
 	);
 }

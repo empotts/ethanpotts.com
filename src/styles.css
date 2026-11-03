@@ -25,11 +25,11 @@ body {
 h1, h2, h3 { text-wrap: balance; }
 p, li { text-wrap: pretty; }
 
-/* 50% checkerboard dither for the desktop */
+/* sparse pixel dither for the desktop (2 of every 16 pixels) */
 .dither {
 	background-color: #fff;
-	background-image: conic-gradient(#000 25%, transparent 0 50%, #000 0 75%, transparent 0);
-	background-size: 2px 2px;
+	background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='4' height='4' shape-rendering='crispEdges'><rect width='1' height='1'/><rect x='2' y='2' width='1' height='1'/></svg>");
+	background-size: 4px 4px;
 	image-rendering: pixelated;
 }
 .dither-light {
@@ -45,10 +45,7 @@ p, li { text-wrap: pretty; }
 }
 .titlebar {
 	background-image: repeating-linear-gradient(#000 0 1px, #fff 1px 3px);
-	background-size: 100% 3px;
-	background-position: 0 4px;
-	background-repeat: repeat-x;
-	background-clip: content-box;
+	box-shadow: inset 0 4px 0 #fff, inset 0 -3px 0 #fff, inset 4px 0 0 #fff, inset -4px 0 0 #fff;
 }
 .btn {
 	border: 2px solid #000;
