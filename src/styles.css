@@ -3,6 +3,8 @@
 @theme {
 	--font-pixel: "Pixelify Sans", ui-monospace, monospace;
 	--font-mono: "IBM Plex Mono", ui-monospace, monospace;
+	--font-read-sans: "Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif;
+	--font-read-serif: "Literata", Georgia, serif;
 }
 
 /* Every colour in the UI comes from two values: --bg (paper) and --fg (ink).
@@ -120,6 +122,29 @@ p, li { text-wrap: pretty; }
 .doc table { display: block; overflow: auto; }
 .doc th, .doc td { border: 1px solid var(--fg); padding: 0.2rem 0.5rem; }
 .doc figure figcaption { font-size: 12px; }
+
+/* Reading preferences for articles. Body and headings follow the chosen face;
+   code always stays monospace. */
+.doc[data-font="sans"] { font-family: var(--font-read-sans); -webkit-font-smoothing: antialiased; }
+.doc[data-font="serif"] { font-family: var(--font-read-serif); -webkit-font-smoothing: antialiased; }
+.doc[data-font="mono"] { font-family: var(--font-mono); }
+.doc[data-font="pixel"] { font-family: var(--font-pixel); }
+.doc[data-font="sans"] :is(h1, h2, h3),
+.doc[data-font="serif"] :is(h1, h2, h3),
+.doc[data-font="mono"] :is(h1, h2, h3) {
+	font-family: inherit;
+	font-weight: 700;
+	letter-spacing: -0.01em;
+}
+.doc[data-font="serif"] :is(h1, h2, h3) { font-weight: 650; }
+.doc[data-size="s"] { font-size: 15px; }
+.doc[data-size="m"] { font-size: 17px; }
+.doc[data-size="l"] { font-size: 20px; }
+.doc[data-font="serif"], .doc[data-font="sans"] { line-height: 1.7; }
+.doc pre, .doc code, .doc kbd, .doc samp { font-family: var(--font-mono); -webkit-font-smoothing: auto; }
+.doc pre { font-size: 13px; }
+.doc :not(pre) > code { font-size: 0.88em; padding: 0 0.25em; border: 1px solid var(--fg); }
+
 
 /* pixel icons */
 .px-ink { fill: var(--fg); }

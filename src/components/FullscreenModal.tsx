@@ -14,12 +14,15 @@ export function FullscreenModal({
 	onClose,
 	children,
 	footer,
+	toolbar,
 	label,
 }: {
 	title: string;
 	onClose: () => void;
 	children: React.ReactNode;
 	footer?: React.ReactNode;
+	/** Optional row of controls under the title bar. */
+	toolbar?: React.ReactNode;
 	/** Accessible name if the visible title is not descriptive enough. */
 	label?: string;
 }) {
@@ -61,6 +64,7 @@ export function FullscreenModal({
 					<h2 className="mx-auto truncate bg-white px-3 font-pixel text-sm leading-none">{title}</h2>
 					<span className="hidden shrink-0 bg-white px-2 font-pixel text-xs sm:block">esc to close</span>
 				</header>
+				{toolbar && <div className="shrink-0 border-b-2 border-black">{toolbar}</div>}
 				<div className="scroll-retro min-h-0 flex-1 overflow-auto">{children}</div>
 				{footer && <div className="shrink-0 border-t-2 border-black">{footer}</div>}
 			</motion.div>
