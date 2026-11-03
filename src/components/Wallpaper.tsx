@@ -69,15 +69,13 @@ export function Wallpaper() {
 		let w = 0;
 		let h = 0;
 		let img: ImageData | null = null;
-		let light: [number, number, number] = [255, 255, 255];
-		let dark: [number, number, number] = [0, 0, 0];
+		let paper: [number, number, number] = [255, 255, 255];
+		let ink: [number, number, number] = [0, 0, 0];
 
 		const readColors = () => {
 			const cs = getComputedStyle(document.documentElement);
-			const bg = parseColor(cs.getPropertyValue("--bg"));
-			const fg = parseColor(cs.getPropertyValue("--fg"));
-			const lum = (c: number[]) => c[0] * 0.3 + c[1] * 0.59 + c[2] * 0.11;
-			[light, dark] = lum(bg) >= lum(fg) ? [bg, fg] : [fg, bg];
+			paper = parseColor(cs.getPropertyValue("--bg"));
+			ink = parseColor(cs.getPropertyValue("--fg"));
 		};
 		const resize = () => {
 			w = Math.ceil(canvas.clientWidth / PIXEL);
@@ -94,41 +92,32 @@ export function Wallpaper() {
 			if (!img) return;
 			const data = img.data;
 			const hour = localHour();
-			// Sun is up 6:30–19:30; arc across the sky.
+			// Sun is up 6:30–19:30 and arcs across the sky; the moon takes the night.
 			const dayP = (hour - 6.5) / 13;
 			const isDay = dayP > 0 && dayP < 1;
-			const nightP = isDay ? 0 : (((hour - 19.5 + 24) % 24) / 11);
-			const p = isDay ? dayP : Math.min(1, nightP);
-			const bodyX = 0.1 + p * 0.8;
-			const bodyY = 0.62 - Math.sin(p * Math.PI) * 0.45;
-			// Twilight: dim near sunrise/sunset.
-			const edge = isDay ? Math.min(dayP, 1 - dayP) : 0;
-			const daylight = isDay ? Math.min(1, 0.45 + edge * 3) : 0.1;
+			const p = isDay ? dayP : (((hour - 19.5 + 24) % 24) / 11);
+			const bodyX = (0.12 + Math.min(1, p) * 0.76) * w;
+			const bodyY = (0.5 - Math.sin(Math.min(1, p) * Math.PI) * 0.36) * h;
+			const bodyR = Math.max(5, Math.min(w, h) * 0.05);
+			const drift = t * 0.0006;
 
-			const sx = bodyX * w;
-			const sy = bodyY * h;
-			const bodyR = Math.max(6, h * 0.06);
-			const cloudShift = t * 0.00002;
-
-			// Ridge lines, far to near.
+			// Ridge lines, far to near. `fill` is ink density below the crest.
 			const layers = [
-				{ base: 0.58, amp: 0.1, freq: 2.2, speed: 0.000002, tone: 0.72 },
-				{ base: 0.66, amp: 0.12, freq: 3.1, speed: 0.000005, tone: 0.52 },
-				{ base: 0.76, amp: 0.11, freq: 4.6, speed: 0.00001, tone: 0.3 },
-				{ base: 0.87, amp: 0.08, freq: 6.5, speed: 0.00002, tone: 0.12 },
+				{ base: 0.66, amp: 0.09, freq: 2.2, speed: 0.000002, fill: 0.14 },
+				{ base: 0.74, amp: 0.09, freq: 3.2, speed: 0.000005, fill: 0.28 },
+				{ base: 0.83, amp: 0.08, freq: 4.8, speed: 0.00001, fill: 0.46 },
+				{ base: 0.93, amp: 0.06, freq: 7, speed: 0.00002, fill: 0.68 },
 			];
 			const ridge = layers.map((L, li) => {
 				const arr = new Float32Array(w);
-				for (let x = 0; x < w; x++) {
-					arr[x] = (L.base - fbm1((x / w) * L.freq + t * L.speed + li * 31) * L.amp) * h;
-				}
+				for (let x = 0; x < w; x++) arr[x] = (L.base - fbm1((x / w) * L.freq + t * L.speed + li * 31) * L.amp) * h;
 				return arr;
 			});
 
 			for (let y = 0; y < h; y++) {
+				const sky = y / h;
 				for (let x = 0; x < w; x++) {
-					let v: number;
-					// Which hill (if any) covers this pixel? Nearest layer wins.
+					let d: number;
 					let layer = -1;
 					for (let li = layers.length - 1; li >= 0; li--) {
 						if (y >= ridge[li][x]) {
@@ -137,26 +126,36 @@ export function Wallpaper() {
 						}
 					}
 					if (layer >= 0) {
-						const L = layers[layer];
-						const depth = (y - ridge[layer][x]) / h;
-						v = L.tone * daylight + 0.06 - depth * 0.6;
-						// Rim light on the ridge crest.
-						if (y - ridge[layer][x] < 1.5) v += 0.25 * daylight;
+						const below = y - ridge[layer][x];
+						// Crisp crest line, then a halftone fill that deepens toward the bottom.
+						d = below < 1 ? 1 : layers[layer].fill + (below / h) * 0.5;
 					} else {
-						// Sky: brighter toward the horizon by day.
-						const sky = y / h;
-						v = isDay ? 0.55 + sky * 0.4 * daylight : 0.04 + sky * 0.08;
-						// Glow around the sun/moon.
-						const d = Math.hypot(x - sx, y - sy);
-						if (d < bodyR) v = isDay ? 1 : 0.95;
-						else v += Math.max(0, 1 - d / (bodyR * 5)) * (isDay ? 0.35 : 0.12);
-						// Clouds by day, faint haze by night.
-						const c = noise2(x / 28 + cloudShift * w, y / 9) * 0.6 + noise2(x / 11 + cloudShift * w * 1.6, y / 5) * 0.4;
-						const cloud = Math.max(0, c - (0.58 - (1 - sky) * 0.05)) * 3;
-						if (cloud > 0 && sky < 0.55) v = isDay ? Math.min(1, v + cloud * 0.6) : v + cloud * 0.08;
+						// Sky: nearly empty by day, a little denser at night.
+						d = isDay ? 0.05 * (1 - sky * 1.6) : 0.2 * (1 - sky * 1.2);
+						const dx = x - bodyX;
+						const dy = y - bodyY;
+						const r = Math.hypot(dx, dy);
+						if (isDay) {
+							// Sun: outlined disk with a halftone face.
+							if (r < bodyR) d = r > bodyR - 1 ? 1 : 0.22;
+							else if (r < bodyR * 1.9) d = Math.max(d, 0.08);
+						} else {
+							// Moon: a crescent cut by an offset disk.
+							const cut = Math.hypot(dx - bodyR * 0.45, dy + bodyR * 0.15);
+							if (r < bodyR && cut > bodyR * 0.85) d = 0;
+							else if (r < bodyR) d = Math.max(d, 0.25);
+						}
+						// Clouds by day: soft speckled blobs with denser undersides.
+						if (isDay && sky < 0.6) {
+							const n = noise2(x / 26 + drift, y / 8) * 0.65 + noise2(x / 9 + drift * 1.7, y / 4) * 0.35;
+							if (n > 0.6) {
+								const under = noise2(x / 26 + drift, (y + 2) / 8) * 0.65 + noise2(x / 9 + drift * 1.7, (y + 2) / 4) * 0.35;
+								d = under > 0.6 ? 0.1 : 0.32;
+							}
+						}
 					}
-					const threshold = BAYER8[(y & 7) * 8 + (x & 7)];
-					const c = v > threshold ? light : dark;
+					const on = d > BAYER8[(y & 7) * 8 + (x & 7)];
+					const c = on ? ink : paper;
 					const i = (y * w + x) * 4;
 					data[i] = c[0];
 					data[i + 1] = c[1];
@@ -164,18 +163,18 @@ export function Wallpaper() {
 					data[i + 3] = 255;
 				}
 			}
-			// Stars at night (single pixels, gently twinkling).
+			// Stars at night: single pixels that twinkle.
 			if (!isDay) {
-				for (const s of stars) {
-					const x = Math.floor(s.x * w);
-					const y = Math.floor(s.y * h);
-					if (ridge[0][x] <= y) continue;
-					if (Math.sin(t / 900 + s.x * 50) * 0.5 + 0.5 > 1 - s.b) {
-						const i = (y * w + x) * 4;
-						data[i] = light[0];
-						data[i + 1] = light[1];
-						data[i + 2] = light[2];
-					}
+				for (const st of stars) {
+					const x = Math.floor(st.x * w);
+					const y = Math.floor(st.y * h);
+					if (y >= ridge[0][x]) continue;
+					const on = Math.sin(t / 700 + st.x * 60) * 0.5 + 0.5 > 1 - st.b;
+					const c = on ? ink : paper;
+					const i = (y * w + x) * 4;
+					data[i] = c[0];
+					data[i + 1] = c[1];
+					data[i + 2] = c[2];
 				}
 			}
 			ctx.putImageData(img, 0, 0);
