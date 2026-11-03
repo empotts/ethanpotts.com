@@ -1,10 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { type FormEvent, useState } from "react";
+import { Window } from "@/components/Window";
 import { signIn, signUp } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/login")({
 	component: LoginPage,
 });
+
+const input = "border-2 border-black px-2 py-1.5 outline-none focus:bg-black focus:text-white";
 
 function LoginPage() {
 	const navigate = useNavigate();
@@ -41,56 +44,17 @@ function LoginPage() {
 	}
 
 	return (
-		<section className="mx-auto max-w-md px-4 sm:px-6">
-			<h1 className="text-3xl font-bold">Private sign in</h1>
-			<form className="mt-6 flex flex-col gap-4" onSubmit={handleSignIn}>
-				<label className="flex flex-col gap-1">
-					<span>Name (for first-time signup)</span>
-					<input
-						className="rounded-md border border-gray-300 bg-transparent px-3 py-2 dark:border-gray-700"
-						value={name}
-						onChange={(event) => setName(event.target.value)}
-					/>
-				</label>
-				<label className="flex flex-col gap-1">
-					<span>Email</span>
-					<input
-						className="rounded-md border border-gray-300 bg-transparent px-3 py-2 dark:border-gray-700"
-						type="email"
-						value={email}
-						onChange={(event) => setEmail(event.target.value)}
-						required
-					/>
-				</label>
-				<label className="flex flex-col gap-1">
-					<span>Password</span>
-					<input
-						className="rounded-md border border-gray-300 bg-transparent px-3 py-2 dark:border-gray-700"
-						type="password"
-						value={password}
-						onChange={(event) => setPassword(event.target.value)}
-						required
-					/>
-				</label>
-				<div className="flex gap-3">
-					<button
-						type="submit"
-						className="rounded-md border border-gray-300 px-4 py-2 dark:border-gray-700"
-						disabled={isLoading}
-					>
-						Sign in
-					</button>
-					<button
-						type="button"
-						className="rounded-md border border-gray-300 px-4 py-2 dark:border-gray-700"
-						disabled={isLoading || !name}
-						onClick={handleSignUp}
-					>
-						Create owner account
-					</button>
+		<Window id="post" title="Sign in" x={300} y={120} width={380} onClose={() => navigate({ to: "/" })}>
+			<form className="flex flex-col gap-3 p-5 text-sm" onSubmit={handleSignIn}>
+				<input className={input} placeholder="Name (first-time signup)" value={name} onChange={(e) => setName(e.target.value)} />
+				<input className={input} placeholder="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+				<input className={input} placeholder="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+				<div className="mt-2 flex justify-end gap-3">
+					<button type="button" disabled={isLoading || !name} onClick={handleSignUp} className="btn disabled:opacity-40">Create owner</button>
+					<button type="submit" disabled={isLoading} className="btn btn-default">Sign in</button>
 				</div>
+				{message ? <p>{message}</p> : null}
 			</form>
-			{message ? <p className="mt-4 text-sm">{message}</p> : null}
-		</section>
+		</Window>
 	);
 }

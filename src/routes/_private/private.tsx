@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Window } from "@/components/Window";
 import { signOut } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/_private/private")({
@@ -8,24 +9,23 @@ export const Route = createFileRoute("/_private/private")({
 function PrivatePage() {
 	const navigate = useNavigate();
 	const { session } = Route.useRouteContext();
-
 	return (
-		<section className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-			<h1 className="text-3xl font-bold">Private</h1>
-			<p className="mt-3 text-gray-600 dark:text-gray-300">
-				Signed in as {session.user.email}. This route is ready for whatever you
-				want to put behind auth later.
-			</p>
-			<button
-				type="button"
-				className="mt-6 rounded-md border border-gray-300 px-4 py-2 dark:border-gray-700"
-				onClick={async () => {
-					await signOut();
-					await navigate({ to: "/login" });
-				}}
-			>
-				Sign out
-			</button>
-		</section>
+		<Window id="post" title="Private" x={300} y={120} width={380} onClose={() => navigate({ to: "/" })}>
+			<div className="p-5 text-sm">
+				<p>Signed in as {session.user.email}.</p>
+				<div className="mt-5 text-right">
+					<button
+						type="button"
+						className="btn btn-default"
+						onClick={async () => {
+							await signOut();
+							await navigate({ to: "/login" });
+						}}
+					>
+						Sign out
+					</button>
+				</div>
+			</div>
+		</Window>
 	);
 }

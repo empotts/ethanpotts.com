@@ -1,1 +1,100 @@
 @import "tailwindcss";
+
+@theme {
+	--font-pixel: "Pixelify Sans", ui-monospace, monospace;
+	--font-mono: "IBM Plex Mono", ui-monospace, monospace;
+	--color-paper: #ffffff;
+	--color-ink: #000000;
+}
+
+html {
+	background: #fff;
+	color: #000;
+	font-family: var(--font-mono);
+	font-size: 15px;
+	-webkit-font-smoothing: none;
+}
+body {
+	min-height: 100vh;
+	overflow-x: hidden;
+}
+::selection {
+	background: #000;
+	color: #fff;
+}
+h1, h2, h3 { text-wrap: balance; }
+p, li { text-wrap: pretty; }
+
+/* 50% checkerboard dither for the desktop */
+.dither {
+	background-color: #fff;
+	background-image: conic-gradient(#000 25%, transparent 0 50%, #000 0 75%, transparent 0);
+	background-size: 2px 2px;
+	image-rendering: pixelated;
+}
+.dither-light {
+	background-color: #fff;
+	background-image: radial-gradient(#000 0.6px, transparent 0.7px);
+	background-size: 4px 4px;
+}
+
+.win {
+	background: #fff;
+	border: 2px solid #000;
+	box-shadow: 3px 3px 0 #000;
+}
+.titlebar {
+	background-image: repeating-linear-gradient(#000 0 1px, #fff 1px 3px);
+	background-size: 100% 3px;
+	background-position: 0 4px;
+	background-repeat: repeat-x;
+	background-clip: content-box;
+}
+.btn {
+	border: 2px solid #000;
+	border-radius: 8px;
+	background: #fff;
+	padding: 0.25rem 1rem;
+	font-family: var(--font-pixel);
+	transition-property: transform;
+	transition-duration: 100ms;
+}
+.btn:active {
+	background: #000;
+	color: #fff;
+	transform: scale(0.96);
+}
+.btn-default {
+	box-shadow: 0 0 0 2px #fff, 0 0 0 4px #000;
+}
+
+.scroll-retro {
+	scrollbar-width: thin;
+	scrollbar-color: #000 #fff;
+}
+
+/* blog document */
+.doc {
+	font-size: 15px;
+	line-height: 1.7;
+}
+.doc h1, .doc h2, .doc h3 {
+	font-family: var(--font-pixel);
+	line-height: 1.15;
+	margin: 1.8rem 0 0.6rem;
+}
+.doc h1 { font-size: 1.8rem; }
+.doc h2 { font-size: 1.4rem; }
+.doc h3 { font-size: 1.15rem; }
+.doc p, .doc ul, .doc ol { margin: 0.9rem 0; }
+.doc ul { list-style: square; padding-left: 1.3rem; }
+.doc ol { list-style: decimal; padding-left: 1.3rem; }
+.doc a { text-decoration: underline; text-underline-offset: 2px; }
+.doc a:hover { background: #000; color: #fff; }
+.doc pre { font-size: 13px; padding: 0.8rem; overflow: auto; margin: 1.2rem 0; border: 2px solid #000; }
+.doc code { font-size: 0.92em; }
+.doc blockquote { border-left: 4px solid #000; padding-left: 0.9rem; }
+.doc img { max-width: 100%; height: auto; filter: grayscale(1) contrast(1.2); border: 2px solid #000; }
+.doc table { display: block; overflow: auto; }
+.doc th, .doc td { border: 1px solid #000; padding: 0.2rem 0.5rem; }
+.doc figure figcaption { font-size: 12px; }

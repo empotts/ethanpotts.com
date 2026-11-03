@@ -1,14 +1,25 @@
 import { createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
+import { Desktop } from "@/components/Desktop";
+import { profile } from "@/data/profile";
+import { getPosts } from "@/posts/worker";
 import appCss from "../styles.css?url";
 
 export const Route = createRootRoute({
+	loader: async () => ({ posts: await getPosts() }),
 	head: () => ({
 		meta: [
 			{ charSet: "utf-8" },
 			{ name: "viewport", content: "width=device-width, initial-scale=1" },
 			{ title: "Ethan Potts" },
+			{ name: "description", content: profile.intro },
 		],
 		links: [
+			{ rel: "preconnect", href: "https://fonts.googleapis.com" },
+			{ rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+			{
+				rel: "stylesheet",
+				href: "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Pixelify+Sans:wght@400;600&display=swap",
+			},
 			{ rel: "stylesheet", href: appCss },
 			{ rel: "icon", href: "/EP.ico" },
 		],
@@ -17,13 +28,14 @@ export const Route = createRootRoute({
 });
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+	const posts = Route.useLoaderData({ select: (d) => d?.posts ?? [] });
 	return (
 		<html lang="en">
 			<head>
 				<HeadContent />
 			</head>
 			<body>
-				{children}
+				<Desktop posts={posts}>{children}</Desktop>
 				<Scripts />
 			</body>
 		</html>
