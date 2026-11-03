@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
-import { Window } from "@/components/Window";
-import { focusWin } from "@/components/windows";
+import { useCallback } from "react";
+import { FullscreenModal } from "@/components/FullscreenModal";
 import { getPost } from "@/posts/worker";
 
 export const Route = createFileRoute("/blog/$slug")({
@@ -26,14 +25,15 @@ export const Route = createFileRoute("/blog/$slug")({
 function Post() {
 	const { post } = Route.useLoaderData();
 	const navigate = useNavigate();
-	useEffect(() => focusWin("post"), []);
+	const close = useCallback(() => navigate({ to: "/blog" }), [navigate]);
 	return (
-		<Window id="post" title={`${post.slug}.txt`} x={220} y={60} width={680} onClose={() => navigate({ to: "/blog" })}>
-			<article className="doc px-8 py-6">
-				<h1 className="!mt-0">{post.data?.title}</h1>
-				{post.data?.description && <p className="text-sm">{post.data.description}</p>}
+		<FullscreenModal title={`${post.slug}.txt`} label={String(post.data?.title ?? post.slug)} onClose={close}>
+			<article className="doc mx-auto max-w-[68ch] px-6 py-10 sm:px-10">
+				<h1 className="!mt-0 !text-4xl">{post.data?.title}</h1>
+				{post.data?.description && <p className="!mt-2 text-sm">{post.data.description}</p>}
+				<hr className="my-6 border-t-2 border-dashed border-black" />
 				<div dangerouslySetInnerHTML={{ __html: post.html }} />
 			</article>
-		</Window>
+		</FullscreenModal>
 	);
 }

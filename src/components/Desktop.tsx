@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { awards, currently, education, experience, type Project, profile, publicProjects } from "@/data/profile";
 import type { PostSummary } from "@/posts/worker";
 import { type IconName, PixelIcon } from "./icons";
+import { Logo } from "./Logo";
 import { THEMES, useTheme } from "./theme";
 import { Wallpaper } from "./Wallpaper";
 import { DeskRef, Window } from "./Window";
@@ -91,7 +92,7 @@ function MenuBar() {
 	);
 }
 
-function DeskIcon({ icon, label, onOpen }: { icon: IconName; label: string; onOpen: () => void }) {
+function DeskIcon({ icon, label, onOpen }: { icon: IconName | "logo"; label: string; onOpen: () => void }) {
 	const [sel, setSel] = useState(false);
 	return (
 		<button
@@ -102,7 +103,13 @@ function DeskIcon({ icon, label, onOpen }: { icon: IconName; label: string; onOp
 			onBlur={() => setSel(false)}
 			className="flex w-20 flex-col items-center gap-1 outline-none"
 		>
-			<PixelIcon name={icon} size={40} inverted={sel} />
+			{icon === "logo" ? (
+				<span className={`flex size-10 items-center justify-center ${sel ? "bg-black" : ""}`}>
+					<Logo size={36} className={sel ? "!bg-white" : ""} />
+				</span>
+			) : (
+				<PixelIcon name={icon} size={40} inverted={sel} />
+			)}
 			<span className={`px-1 font-pixel text-[13px] leading-tight ${sel ? "bg-black text-white" : "bg-white"}`}>{label}</span>
 		</button>
 	);
@@ -239,7 +246,7 @@ function AboutWin({ onClose }: { onClose: () => void }) {
 		<Window id="about" title="About" x={60} y={40} width={460} onClose={onClose}>
 			<div className="p-6">
 				<div className="flex items-center gap-4">
-					<PixelIcon name="person" size={56} />
+					<Logo size={64} />
 					<div>
 						<h1 className="font-pixel text-4xl leading-none">{profile.name}</h1>
 						<p className="mt-1 text-sm">{profile.location}</p>
@@ -250,7 +257,7 @@ function AboutWin({ onClose }: { onClose: () => void }) {
 				<div className="mt-5 border-2 border-black p-3 text-sm">
 					{currently.map((c) => (
 						<div key={c.label} className="flex gap-3">
-							<span className="w-20 shrink-0">{c.label}</span>
+							<span className="w-32 shrink-0">{c.label}</span>
 							<span>{c.value}</span>
 						</div>
 					))}
@@ -311,7 +318,7 @@ export function Desktop({ posts, children }: { posts: PostSummary[]; children: R
 			<div ref={desk} className="dither relative min-h-screen overflow-hidden pt-12 max-[720px]:overflow-visible max-[720px]:pb-8">
 				<Wallpaper />
 				<div className="absolute top-12 right-4 z-[5] hidden flex-col gap-5 min-[721px]:flex">
-					<DeskIcon icon="person" label="About" onOpen={() => openWin("about")} />
+					<DeskIcon icon="logo" label="About" onOpen={() => openWin("about")} />
 					<DeskIcon icon="folder" label="Projects" onOpen={go("projects")} />
 					<DeskIcon icon="briefcase" label="Work" onOpen={go("work")} />
 					<DeskIcon icon="doc" label="Writing" onOpen={go("writing")} />

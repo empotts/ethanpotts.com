@@ -1,0 +1,68 @@
+import { motion } from "motion/react";
+import { useEffect, useRef } from "react";
+
+/**
+ * Full-screen retro modal. Covers the desktop with a single window: title bar,
+ * close box, scrollable body, optional footer. Closes on Escape. Locks page scroll
+ * and returns focus to whatever was focused before it opened.
+ *
+ * Used for articles today; reusable for anything that needs the whole screen.
+ */
+export function FullscreenModal({
+	title,
+	onClose,
+	children,
+	footer,
+	label,
+}: {
+	title: string;
+	onClose: () => void;
+	children: React.ReactNode;
+	footer?: React.ReactNode;
+	/** Accessible name if the visible title is not descriptive enough. */
+	label?: string;
+}) {
+	const panel = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		const previous = document.activeElement as HTMLElement | null;
+		const { overflow } = document.body.style;
+		document.body.style.overflow = "hidden";
+		panel.current?.focus();
+		const onKey = (e: KeyboardEvent) => {
+			if (e.key === "Escape") onClose();
+		};
+		window.addEventListener("keydown", onKey);
+		return () => {
+			document.body.style.overflow = overflow;
+			window.removeEventListener("keydown", onKey);
+			previous?.focus?.();
+		};
+	}, [onClose]);
+
+	return (
+		<div className="fixed inset-0 z-[300] p-0 sm:p-6 sm:pt-12" role="dialog" aria-modal="true" aria-label={label ?? title}>
+			<motion.div
+				ref={panel}
+				tabIndex={-1}
+				initial={{ scale: 0.97, opacity: 0 }}
+				animate={{ scale: 1, opacity: 1 }}
+				transition={{ duration: 0.12, ease: "easeOut" }}
+				className="win flex h-full flex-col outline-none"
+			>
+				<header className="titlebar flex h-8 shrink-0 items-center gap-2 border-b-2 border-black px-2">
+					<button
+						type="button"
+						onClick={onClose}
+						aria-label="Close"
+						className="relative size-4 shrink-0 border-2 border-black bg-white after:absolute after:-inset-3 after:content-[''] hover:bg-black"
+					/>
+					<h2 className="mx-auto truncate bg-white px-3 font-pixel text-sm leading-none">{title}</h2>
+					<span className="hidden shrink-0 bg-white px-2 font-pixel text-xs sm:block">esc to close</span>
+				</header>
+				<div className="scroll-retro min-h-0 flex-1 overflow-auto">{children}</div>
+				{footer && <div className="shrink-0 border-t-2 border-black">{footer}</div>}
+			</motion.div>
+		</div>
+	);
+}
