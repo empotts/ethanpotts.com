@@ -75,7 +75,7 @@ export const experience: Experience[] = [
 	},
 	{
 		org: "SupplyPike",
-		role: "Software Engineer I → Intern",
+		role: "Intern → Software Engineer I",
 		start: "May 2024",
 		end: "Jan 2025",
 		place: "Rogers, AR",
@@ -367,7 +367,7 @@ export const currently = [
 
 export const funFacts = [
 	"Went from ultrasound phantoms to Temporal workflows.",
-	"Helped get the Razorback Marching Band to the Macy's Parade (well, the announcement).",
+	"Made the video that helped send the Razorback Marching Band to the Macy's Parade.",
 	"Owns more lenses than is reasonable.",
 	"Used to play trumpet; now just photographs the people who do.",
 	"Has opinions about Tour de France stage profiles.",
