@@ -38,7 +38,8 @@ function render(value: string) {
 }
 
 export function markdownToHtml(value: string, filename: string) {
-	const document = parseMarkdown(value);
+	// The excerpt marker is an HTML comment the parser would otherwise print as text.
+	const document = parseMarkdown(value.replace(EXCERPT_BOUNDARY, ""));
 	const excerptBoundaryIndex = value.indexOf(EXCERPT_BOUNDARY);
 	const excerpt =
 		excerptBoundaryIndex === -1
