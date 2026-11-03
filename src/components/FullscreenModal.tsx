@@ -1,5 +1,6 @@
 import { motion } from "motion/react";
 import { useEffect, useRef } from "react";
+import { boot } from "./windows";
 
 /**
  * Full-screen retro modal. Covers the desktop with a single window: title bar,
@@ -45,7 +46,7 @@ export function FullscreenModal({
 			<motion.div
 				ref={panel}
 				tabIndex={-1}
-				initial={{ scale: 0.97, opacity: 0 }}
+				initial={boot.hydrated ? { scale: 0.97, opacity: 0 } : false}
 				animate={{ scale: 1, opacity: 1 }}
 				transition={{ duration: 0.12, ease: "easeOut" }}
 				className="win flex h-full flex-col outline-none"

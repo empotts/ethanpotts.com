@@ -56,3 +56,6 @@ export const ROUTE_OF: Partial<Record<WinId, string>> = {
 	work: "/resume",
 	writing: "/blog",
 };
+
+/** False until the first client render has finished; windows present at load skip their entrance animation. */
+export const boot = { hydrated: false };

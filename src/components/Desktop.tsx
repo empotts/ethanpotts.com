@@ -7,7 +7,7 @@ import { Logo } from "./Logo";
 import { THEMES, useTheme } from "./theme";
 import { Wallpaper } from "./Wallpaper";
 import { DeskRef, Window } from "./Window";
-import { closeWin, openWin, ROUTE_OF, resetDesk, routeWin, useWindows, type WinId } from "./windows";
+import { boot, closeWin, openWin, ROUTE_OF, resetDesk, routeWin, useWindows, type WinId } from "./windows";
 
 function useClock() {
 	const [t, setT] = useState("");
@@ -298,6 +298,10 @@ export function Desktop({ posts, children }: { posts: PostSummary[]; children: R
 	useEffect(() => {
 		if (current && current !== "post") openWin(current);
 	}, [current]);
+
+	useEffect(() => {
+		boot.hydrated = true;
+	}, []);
 
 	const visible = new Set<WinId>(open);
 	if (current && current !== "post") visible.add(current);

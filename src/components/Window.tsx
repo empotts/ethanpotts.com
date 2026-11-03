@@ -1,6 +1,6 @@
 import { motion, useDragControls } from "motion/react";
 import { createContext, useContext, useEffect, useState } from "react";
-import { focusWin, useWindows, type WinId } from "./windows";
+import { boot, focusWin, useWindows, type WinId } from "./windows";
 
 export const DeskRef = createContext<React.RefObject<HTMLDivElement | null> | null>(null);
 
@@ -51,7 +51,7 @@ export function Window({
 			dragElastic={0}
 			dragConstraints={desk ?? undefined}
 			onPointerDown={() => focusWin(id)}
-			initial={{ scale: 0.92, opacity: 0 }}
+			initial={boot.hydrated ? { scale: 0.92, opacity: 0 } : false}
 			animate={{ scale: 1, opacity: 1 }}
 			transition={{ duration: 0.12, ease: "easeOut" }}
 			className={`win flex flex-col ${narrow ? "relative mx-3 mb-4 w-auto" : "absolute"}`}
