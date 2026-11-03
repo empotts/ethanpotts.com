@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 
-export type WinId = "about" | "projects" | "work" | "writing" | "contact" | "post";
+export type WinId = "about" | "projects" | "project" | "work" | "writing" | "contact" | "post";
 
 type State = { open: WinId[]; order: WinId[]; gen: number };
 let state: State = { open: ["about"], order: ["about"], gen: 0 };

@@ -132,13 +132,11 @@ export type IconName = keyof typeof ICONS;
 
 export function PixelIcon({ name, size = 32, inverted = false }: { name: IconName; size?: number; inverted?: boolean }) {
 	const rows = ICONS[name];
-	const ink = inverted ? "#fff" : "#000";
-	const fill = inverted ? "#000" : "#fff";
 	return (
-		<svg width={size} height={size} viewBox="0 0 16 16" shapeRendering="crispEdges" aria-hidden>
+		<svg width={size} height={size} viewBox="0 0 16 16" shapeRendering="crispEdges" aria-hidden className={inverted ? "px-inv" : undefined}>
 			{rows.flatMap((row, y) =>
 				[...row].map((c, x) =>
-					c === "." ? null : <rect key={`${x}-${y}`} x={x} y={y} width="1" height="1" fill={c === "#" ? ink : fill} />,
+					c === "." ? null : <rect key={`${x}-${y}`} x={x} y={y} width="1" height="1" className={c === "#" ? "px-ink" : "px-paper"} />,
 				),
 			)}
 		</svg>

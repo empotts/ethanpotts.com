@@ -1,5 +1,6 @@
 import { createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { Desktop } from "@/components/Desktop";
+import { themeBootScript } from "@/components/theme";
 import { profile } from "@/data/profile";
 import { getPosts } from "@/posts/worker";
 import appCss from "../styles.css?url";
@@ -23,6 +24,7 @@ export const Route = createRootRoute({
 			{ rel: "stylesheet", href: appCss },
 			{ rel: "icon", href: "/EP.ico" },
 		],
+		scripts: [{ children: themeBootScript }],
 	}),
 	shellComponent: RootDocument,
 });
@@ -30,7 +32,7 @@ export const Route = createRootRoute({
 function RootDocument({ children }: { children: React.ReactNode }) {
 	const posts = Route.useLoaderData({ select: (d) => d?.posts ?? [] });
 	return (
-		<html lang="en">
+		<html lang="en" suppressHydrationWarning>
 			<head>
 				<HeadContent />
 			</head>

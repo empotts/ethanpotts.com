@@ -1,8 +1,10 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { awards, currently, education, experience, type Project, profile, projects } from "@/data/profile";
+import { awards, currently, education, experience, type Project, profile, publicProjects } from "@/data/profile";
 import type { PostSummary } from "@/posts/worker";
 import { type IconName, PixelIcon } from "./icons";
+import { THEMES, useTheme } from "./theme";
+import { Wallpaper } from "./Wallpaper";
 import { DeskRef, Window } from "./Window";
 import { closeWin, openWin, ROUTE_OF, resetDesk, routeWin, useWindows, type WinId } from "./windows";
 
@@ -16,6 +18,41 @@ function useClock() {
 		return () => clearInterval(id);
 	}, []);
 	return t;
+}
+
+function ThemeMenu() {
+	const [open, setOpen] = useState(false);
+	const [theme, setTheme] = useTheme();
+	return (
+		<div className="relative">
+			<button type="button" onClick={() => setOpen((o) => !o)} className={`px-3 py-0.5 ${open ? "bg-black text-white" : ""}`}>
+				Theme
+			</button>
+			{open && (
+				<>
+					<button type="button" className="fixed inset-0 cursor-default" aria-label="Close menu" onClick={() => setOpen(false)} />
+					<div className="win absolute top-7 right-0 w-52 py-1 sm:right-auto sm:left-0" role="menu">
+						{THEMES.map((t) => (
+							<button
+								key={t.id}
+								type="button"
+								role="menuitemradio"
+								aria-checked={theme === t.id}
+								className="flex w-full items-center gap-2 px-3 py-1 text-left hover:bg-black hover:text-white"
+								onClick={() => {
+									setTheme(t.id);
+									setOpen(false);
+								}}
+							>
+								<span className="w-3">{theme === t.id ? "✓" : ""}</span>
+								{t.label}
+							</button>
+						))}
+					</div>
+				</>
+			)}
+		</div>
+	);
 }
 
 function MenuBar() {
@@ -45,9 +82,10 @@ function MenuBar() {
 					</>
 				)}
 			</div>
-			<Link to="/projects" className="px-3 py-0.5 hover:bg-black hover:text-white">Projects</Link>
-			<Link to="/resume" className="px-3 py-0.5 hover:bg-black hover:text-white">Work</Link>
-			<Link to="/blog" className="px-3 py-0.5 hover:bg-black hover:text-white">Writing</Link>
+			<Link to="/projects" className="px-2 py-0.5 hover:bg-black hover:text-white sm:px-3">Projects</Link>
+			<Link to="/resume" className="px-2 py-0.5 hover:bg-black hover:text-white sm:px-3">Work</Link>
+			<Link to="/blog" className="hidden px-3 py-0.5 hover:bg-black hover:text-white sm:block">Writing</Link>
+			<ThemeMenu />
 			<span className="ml-auto px-2 whitespace-nowrap tabular-nums">{time}</span>
 		</div>
 	);
@@ -70,50 +108,61 @@ function DeskIcon({ icon, label, onOpen }: { icon: IconName; label: string; onOp
 	);
 }
 
-function ProjectsWin({ onClose }: { onClose: () => void }) {
-	const [sel, setSel] = useState<Project>(projects[0]);
+function ProjectsWin({ onClose, onOpen, selected, setSelected }: { onClose: () => void; onOpen: (p: Project) => void; selected: string | null; setSelected: (s: string) => void }) {
 	return (
-		<Window
-			id="projects"
-			title="Projects"
-			x={260}
-			y={70}
-			width={560}
-			onClose={onClose}
-			footer={
-				<div className="flex items-start gap-4 p-4">
-					<div className="min-w-0 flex-1">
-						<div className="font-pixel text-lg leading-tight">{sel.name}</div>
-						<p className="mt-1 text-sm">{sel.description}</p>
-					</div>
-					{(sel.href || sel.repo) && (
-						<a href={sel.href ?? sel.repo} target="_blank" rel="noreferrer" className="btn btn-default shrink-0">
-							Open
-						</a>
-					)}
-				</div>
-			}
-		>
+		<Window id="projects" title="Projects" x={260} y={70} width={540} onClose={onClose}>
 			<div className="flex justify-between border-b border-black px-3 py-1 text-xs">
-				<span>{projects.length} items</span>
-				<span>double-click to open</span>
+				<span>{publicProjects.length} items</span>
+				<span>click twice to open</span>
 			</div>
 			<div className="grid grid-cols-3 gap-y-4 p-4 sm:grid-cols-4">
-				{projects.map((p) => {
-					const active = sel.slug === p.slug;
+				{publicProjects.map((p) => {
+					const active = selected === p.slug;
 					return (
 						<button
 							key={p.slug}
 							type="button"
-							onClick={() => setSel(p)}
-							onDoubleClick={() => (p.href || p.repo) && window.open(p.href ?? p.repo, "_blank", "noopener")}
+							onClick={() => (active ? onOpen(p) : setSelected(p.slug))}
+							onDoubleClick={() => onOpen(p)}
+							onKeyDown={(e) => e.key === "Enter" && onOpen(p)}
 							className="flex flex-col items-center gap-1 outline-none"
 						>
-							<PixelIcon name={p.kind === "game" || p.kind === "app" ? "app" : "folder"} size={36} inverted={active} />
+							<PixelIcon name={p.href ? "app" : "folder"} size={36} inverted={active} />
 							<span className={`max-w-full px-1 text-center font-pixel text-[13px] leading-tight ${active ? "bg-black text-white" : ""}`}>{p.name}</span>
 						</button>
 					);
 				})}
+			</div>
+		</Window>
+	);
+}
+
+function ProjectWin({ p, onClose }: { p: Project; onClose: () => void }) {
+	return (
+		<Window id="project" title={p.name} x={420} y={150} width={360} onClose={onClose}>
+			<div className="p-5">
+				<div className="flex items-center gap-3">
+					<PixelIcon name={p.href ? "app" : "folder"} size={40} />
+					<div>
+						<h3 className="font-pixel text-xl leading-tight">{p.name}</h3>
+						<div className="text-xs">
+							{p.kind} · {p.year}
+						</div>
+					</div>
+				</div>
+				<p className="mt-4 text-sm">{p.description}</p>
+				<div className="mt-5 flex justify-end gap-3">
+					{p.repo && (
+						<a href={p.repo} target="_blank" rel="noreferrer" className={p.href ? "btn" : "btn btn-default"}>
+							Source
+						</a>
+					)}
+					{p.href && (
+						<a href={p.href} target="_blank" rel="noreferrer" className="btn btn-default">
+							Visit
+						</a>
+					)}
+				</div>
 			</div>
 		</Window>
 	);
@@ -236,6 +285,8 @@ export function Desktop({ posts, children }: { posts: PostSummary[]; children: R
 	const current = routeWin(pathname);
 	const { open, gen } = useWindows();
 	const [trash, setTrash] = useState(false);
+	const [selected, setSelected] = useState<string | null>(null);
+	const [project, setProject] = useState<Project | null>(null);
 
 	useEffect(() => {
 		if (current && current !== "post") openWin(current);
@@ -258,6 +309,7 @@ export function Desktop({ posts, children }: { posts: PostSummary[]; children: R
 		<DeskRef.Provider value={desk}>
 			<MenuBar />
 			<div ref={desk} className="dither relative min-h-screen overflow-hidden pt-12 max-[720px]:overflow-visible max-[720px]:pb-8">
+				<Wallpaper />
 				<div className="absolute top-12 right-4 z-[5] hidden flex-col gap-5 min-[721px]:flex">
 					<DeskIcon icon="person" label="About" onOpen={() => openWin("about")} />
 					<DeskIcon icon="folder" label="Projects" onOpen={go("projects")} />
@@ -270,14 +322,25 @@ export function Desktop({ posts, children }: { posts: PostSummary[]; children: R
 				</div>
 				<div key={gen} className="max-[720px]:flex max-[720px]:flex-col-reverse">
 					{visible.has("about") && <AboutWin onClose={close("about")} />}
-					{visible.has("projects") && <ProjectsWin onClose={close("projects")} />}
+					{visible.has("projects") && (
+						<ProjectsWin
+							onClose={close("projects")}
+							selected={selected}
+							setSelected={setSelected}
+							onOpen={(p) => {
+								setProject(p);
+								openWin("project");
+							}}
+						/>
+					)}
+					{visible.has("project") && project && <ProjectWin key={project.slug} p={project} onClose={() => closeWin("project")} />}
 					{visible.has("work") && <WorkWin onClose={close("work")} />}
 					{visible.has("writing") && <WritingWin onClose={close("writing")} posts={posts} />}
 					{visible.has("contact") && <ContactWin onClose={close("contact")} />}
 				</div>
 				{children}
 				{trash && (
-					<div className="fixed inset-0 z-[200] flex items-center justify-center bg-white/40">
+					<div className="fixed inset-0 z-[200] flex items-center justify-center bg-white/50">
 						<div className="win w-80 p-5" role="alertdialog" aria-label="Trash">
 							<div className="flex gap-4">
 								<PixelIcon name="trash" size={40} />
