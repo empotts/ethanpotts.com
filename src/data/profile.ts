@@ -20,12 +20,12 @@ export const profile = {
 	github: "https://github.com/empotts",
 	githubHandle: "empotts",
 	linkedin: "https://www.linkedin.com/in/ethanmpotts",
-	tagline:
-		"I build revenue recovery software at SPS Commerce, turning messy retailer data into workflows that get suppliers paid. Off the clock: marching band photos, side projects on Cloudflare, and too much pro cycling.",
+	/** One sentence. Used under the name. */
+	intro: "Software engineer at SPS Commerce. I build tools that help suppliers get paid.",
+	tagline: "Software engineer at SPS Commerce. I build tools that help suppliers get paid.",
 	shortBio: [
-		"I'm a software engineer at SPS Commerce, where I build revenue recovery applications that help teams turn complex retailer data into actionable workflows: ingestion, dispute submission, repayment tracking, onboarding.",
-		"My work spans full-stack development, data pipelines, integrations and automation. I like understanding a problem, building a practical solution, and making it reliable and easy to use. Lately that means AI workflows, and I'm sharpening that through the MEGA.dev AI Engineering course.",
-		"Before software I did biomedical engineering research: cardiovascular imaging in one lab, gene editing in another. That plus photography shaped how I work: stay curious, work carefully with evidence, and communicate clearly.",
+		"I work on revenue recovery at SPS Commerce: retailer data in, disputes out, money back to suppliers.",
+		"Before software I studied biomedical engineering. On weekends I photograph marching bands and build small apps.",
 	],
 } as const;
 
@@ -43,19 +43,16 @@ export type Experience = {
 export const experience: Experience[] = [
 	{
 		org: "SPS Commerce",
-		role: "Software Engineer · Revenue Recovery",
+		role: "Software Engineer",
 		start: "Mar 2026",
 		end: "Now",
-		place: "Rogers, AR · Hybrid",
-		blurb:
-			"Revenue recovery workflows for multiple retailers, from data ingestion and dispute submission to repayment tracking and onboarding.",
+		place: "Rogers, AR",
+		blurb: "Revenue recovery for multiple retailers.",
 		bullets: [
-			"Built a shared AI workflow on Amazon Bedrock that analyzes retailer dispute responses, matching them to disputes before model analysis and routing unmatched responses to review.",
-			"Built a hermetic end-to-end suite covering 32 production-boundary contracts across the web app, worker, queue processor and gateway.",
-			"Retailer integrations and automated workflows with TypeScript, Temporal, PostgreSQL, RabbitMQ and AWS on Kubernetes.",
-			"Reliability via idempotent submission checks, OpenTelemetry tracing, CI, mutation testing and incident analysis.",
+			"Shared AI workflow on Amazon Bedrock that reads retailer dispute responses.",
+			"End-to-end test suite covering 32 production contracts.",
 		],
-		tags: ["TypeScript", "Temporal", "Bedrock", "Postgres", "RabbitMQ", "K8s"],
+		tags: ["TypeScript", "Temporal", "AWS"],
 	},
 	{
 		org: "SPS Commerce",
@@ -63,31 +60,25 @@ export const experience: Experience[] = [
 		start: "Dec 2024",
 		end: "Mar 2026",
 		place: "Rogers, AR",
-		blurb:
-			"Helped build Navigator, the multi-retailer app that lets the revenue recovery product add new retailers.",
+		blurb: "Helped build Navigator, the multi-retailer app.",
 		bullets: [
-			"Stood up Navigator on TanStack Start with search, filtering and streaming exports.",
-			"Dispute submission and repayment workflows on Temporal + Mailgun, including inbound email and attachments.",
-			"Built a RabbitMQ → Temporal queue processor for Core events and automated onboarding.",
-			"Automated disputing with readiness checks, supplier settings, daily limits and post-refresh execution.",
+			"Started the app on TanStack Start.",
+			"Dispute and repayment workflows on Temporal.",
 		],
-		tags: ["TanStack Start", "Temporal", "Mailgun", "Prisma"],
+		tags: ["TanStack Start", "Temporal"],
 	},
 	{
 		org: "SupplyPike",
-		role: "Intern → Software Engineer I",
+		role: "Software Engineer I",
 		start: "May 2024",
 		end: "Jan 2025",
 		place: "Rogers, AR",
-		blurb:
-			"Joined as an intern, stayed through the SPS Commerce acquisition. Laid the foundation for the Walgreens app and shipped CVS features.",
+		blurb: "Started as an intern. Stayed through the SPS acquisition.",
 		bullets: [
-			"Cut a payment sync step from 30+ minutes to a couple of minutes by threading a document ID through the workflow.",
-			"Built the Walgreens pipeline: ingest retailer files to S3, transform into deductions, detect duplicates and changes.",
-			"Helped split a single-retailer codebase into shared + retailer-specific packages with separate deployments.",
-			"CVS dashboards, exports, archiving, bulk disputes, redisputes and payment reconciliation.",
+			"Cut a payment sync step from 30 minutes to two.",
+			"Built the Walgreens data pipeline.",
 		],
-		tags: ["React", "PostgreSQL", "AWS S3", "Monorepo"],
+		tags: ["React", "PostgreSQL"],
 	},
 	{
 		org: "University of Arkansas Bands",
@@ -95,13 +86,9 @@ export const experience: Experience[] = [
 		start: "Jan 2024",
 		end: "Now",
 		place: "Fayetteville, AR",
-		blurb:
-			"Photo + video for the Razorback Marching Band, Hogwild Basketball Band and UA Concert Bands.",
-		bullets: [
-			"2M+ Instagram impressions and 15% follower growth during the 2025 marching season.",
-			"Half of the media team behind the RMB's 2027 Macy's Thanksgiving Day Parade selection announcement.",
-		],
-		tags: ["Photo", "Video", "Strategy"],
+		blurb: "Photo and video for the Razorback Marching Band.",
+		bullets: ["2M+ Instagram impressions in the 2025 season."],
+		tags: ["Photo", "Video"],
 	},
 	{
 		org: "PottsShotts Photography",
@@ -109,28 +96,19 @@ export const experience: Experience[] = [
 		start: "Apr 2023",
 		end: "Now",
 		place: "Rogers, AR",
-		blurb:
-			"Sports and marching arts photography across Arkansas and beyond: AMAA and WGI events, plus a stint as intern photographer for the Winston-Salem Dash (MiLB).",
-		bullets: [
-			"One of Arkansas' leading marching arts photography providers.",
-			"Runs on software I built: galleries, events and a type-safe SmugMug SDK.",
-		],
-		tags: ["Canon", "Lightroom", "Premiere"],
+		blurb: "Sports and marching arts photography.",
+		bullets: ["Covers AMAA and WGI events."],
+		tags: ["Photography"],
 	},
 	{
 		org: "Cardiovascular Biomechanics Lab",
-		role: "Undergraduate Research Assistant",
+		role: "Undergraduate Researcher",
 		start: "Jan 2021",
 		end: "Jan 2024",
 		place: "Fayetteville, AR",
-		blurb:
-			"Dr. Morten Jensen's lab: cardiovascular imaging and signal processing.",
-		bullets: [
-			"Left ventricle flow: Blood Speckle Imaging of hemodynamics in children with congenital heart defects. Gel phantoms, ultrasound, MATLAB.",
-			"Peripheral venous pressure: predicting hemorrhage blood loss from heart signals.",
-			"Helped write and edit multiple manuscripts for submission.",
-		],
-		tags: ["MATLAB", "Ultrasound", "Signals"],
+		blurb: "Ultrasound blood-flow imaging and signal processing.",
+		bullets: ["Studied blood flow in children with heart defects."],
+		tags: ["MATLAB"],
 	},
 ];
 
@@ -140,15 +118,10 @@ export const education = {
 	minor: "Minor in Computer Science",
 	years: "2020 – 2024",
 	year: "2024",
-	honors: "Summa Cum Laude · First Ranked Senior Scholar",
+	honors: "Summa Cum Laude",
 	thesis:
 		"Honors thesis: Transcriptomic Profiling of Engineered Human Gene Integration in the Mouse Genome Following In Vitro Gene Editing (Dr. Christopher Nelson).",
-	activities: [
-		"President, Kappa Kappa Psi — Lambda Chapter",
-		"Section Leader, Razorback Marching Band",
-		"Tau Beta Pi",
-		"McMillon Innovation Studio project lead",
-	],
+	activities: ["President, Kappa Kappa Psi", "Section leader, Razorback Marching Band"],
 	grad: "Graduate coursework in Computer Science, 2024: algorithms, databases, mobile full-stack",
 };
 
@@ -185,8 +158,7 @@ export const projects: Project[] = [
 		kind: "game",
 		year: "2026",
 		oneLiner: "Push-your-luck card game, realtime with friends.",
-		description:
-			"Mobile-first multiplayer card game. Create a table, share a link, race to 200 without flipping the same number twice. One SQLite-backed Durable Object per game with hibernatable WebSockets.",
+		description: "A push-your-luck card game. Share a link and play with friends in real time.",
 		stack: ["TanStack Start", "Durable Objects", "WebSockets", "Alchemy"],
 		href: "https://flip-7.ethanmpotts.workers.dev",
 		repo: "https://github.com/empotts/flip-7",
@@ -199,8 +171,7 @@ export const projects: Project[] = [
 		kind: "game",
 		year: "2026",
 		oneLiner: "A daily cryptic crossword trainer.",
-		description:
-			"One deterministic cryptic clue a day, plus endless mode with shareable seeds, a timer, and check/reveal. Server functions stream one clue at a time so it stays snappy.",
+		description: "One cryptic crossword clue a day, plus an endless mode.",
 		stack: ["TanStack Start", "Cloudflare Workers"],
 		href: "https://cryptic-conditioning.ethanmpotts.workers.dev",
 		repo: "https://github.com/empotts/cryptic-conditioning",
@@ -213,8 +184,7 @@ export const projects: Project[] = [
 		kind: "game",
 		year: "2026",
 		oneLiner: "Multiplayer crosswords where clues link across boards.",
-		description:
-			"Every player gets a freshly generated grid; typed cells sync through the room and linked clue substrings light up on everyone else's board. The generator enforces a five-second budget per four-player room.",
+		description: "Each player gets a different grid. Shared letters show up on everyone's board.",
 		stack: ["Durable Objects", "Puzzle generation", "React"],
 		color: "#00b3a4",
 		featured: true,
@@ -225,8 +195,7 @@ export const projects: Project[] = [
 		kind: "app",
 		year: "2026",
 		oneLiner: "Practice marching drill in first person.",
-		description:
-			"A Three.js drill viewer that loads OpenMarch and Pyware files and lets you walk your own spot on the field in first person: 287 performers, 932 counts, synced to the show audio.",
+		description: "Load a marching show and walk your own spot on the field in 3D.",
 		stack: ["Three.js", "TypeScript", "File formats"],
 		color: "#2fbf4a",
 		featured: true,
@@ -237,8 +206,7 @@ export const projects: Project[] = [
 		kind: "data",
 		year: "2026",
 		oneLiner: "Pro cycling rankings from scraped race history.",
-		description:
-			"A rider ranking site fed by a browser-driven scraper of WorldTour, Worlds and Olympic results. Auth, profiles, R2 avatars, the works.",
+		description: "Rankings for pro cyclists, built from scraped race results.",
 		stack: ["TanStack Start", "D1", "R2", "Playwright"],
 		color: "#ffd400",
 		featured: true,
@@ -249,8 +217,7 @@ export const projects: Project[] = [
 		kind: "app",
 		year: "2026",
 		oneLiner: "The platform behind my photography business.",
-		description:
-			"Events, participants, galleries and client contact on Cloudflare D1 with passkey auth and an owner-approval admin flow.",
+		description: "Galleries, events and booking for my photography business.",
 		stack: ["TanStack Start", "D1", "Better Auth", "Passkeys"],
 		color: "#ff8fb1",
 		featured: true,
@@ -261,8 +228,7 @@ export const projects: Project[] = [
 		kind: "tool",
 		year: "2026",
 		oneLiner: "Let an AI agent write marching drill.",
-		description:
-			"A fork of the open-source OpenMarch drill writer that exposes drill authoring through MCP, with editable example shows.",
+		description: "A fork of OpenMarch that lets an AI agent write drill.",
 		stack: ["MCP", "Electron", "TypeScript"],
 		color: "#3d7bff",
 	},
@@ -272,8 +238,7 @@ export const projects: Project[] = [
 		kind: "library",
 		year: "2026",
 		oneLiner: "Type-safe TypeScript SDK for SmugMug API v2.",
-		description:
-			"Curated camel-case models over generated endpoint metadata, a typed result API, and a safe raw escape hatch. Runtime-portable.",
+		description: "A typed TypeScript client for the SmugMug API.",
 		stack: ["TypeScript", "Codegen"],
 		color: "#9ad62a",
 	},
@@ -283,8 +248,7 @@ export const projects: Project[] = [
 		kind: "tool",
 		year: "2026",
 		oneLiner: "GitHub Projects as the UI for AI coding agents.",
-		description:
-			"A local daemon that watches a GitHub Project, routes each card to the right checkout, plans when it hits Ready and starts coding when it moves to In Progress.",
+		description: "Move a GitHub card to Ready and an agent starts the work.",
 		stack: ["Node", "GitHub API", "Agents"],
 		repo: "https://github.com/empotts/glide",
 		color: "#ff9f1c",
@@ -295,8 +259,7 @@ export const projects: Project[] = [
 		kind: "game",
 		year: "2026",
 		oneLiner: "Combine elements; an LLM invents the result.",
-		description:
-			"An element-crafting toy on Cloudflare: Workers AI (Llama 3.1) dreams up new combinations, D1 remembers them forever.",
+		description: "Combine two words. A language model makes up the result.",
 		stack: ["Workers AI", "D1", "Drizzle"],
 		repo: "https://github.com/empotts/semi-infinite-craft",
 		color: "#e84cff",
@@ -307,8 +270,7 @@ export const projects: Project[] = [
 		kind: "tool",
 		year: "2026",
 		oneLiner: "Browse every possible Catan board, deterministically.",
-		description:
-			"A deterministic browser over base-game and 5–6 player Catan layouts. Every board has an address.",
+		description: "Every possible Catan board, each with its own address.",
 		stack: ["JavaScript", "Combinatorics"],
 		repo: "https://github.com/empotts/every-catan-board",
 		color: "#d9822b",
@@ -319,8 +281,7 @@ export const projects: Project[] = [
 		kind: "app",
 		year: "2026",
 		oneLiner: "Seven synced scratch pages + a macOS menu-bar app.",
-		description:
-			"A tiny Tot-inspired scratchpad: seven synced pages, one local-only page, autosave, and a native SwiftUI companion.",
+		description: "Seven synced scratch pages and a macOS menu bar app.",
 		stack: ["TanStack Start", "SwiftUI"],
 		repo: "https://github.com/empotts/jotto",
 		color: "#5ec8ff",
@@ -331,8 +292,7 @@ export const projects: Project[] = [
 		kind: "starter",
 		year: "2026",
 		oneLiner: "Private-app starter with passkeys and owner approval.",
-		description:
-			"TanStack Start on Workers + D1 with Better Auth, WebAuthn passkeys, pending-by-default accounts and an /admin approval flow.",
+		description: "A starter for private apps with passkeys and owner approval.",
 		stack: ["TanStack Start", "D1", "Better Auth"],
 		repo: "https://github.com/empotts/safety-car",
 		color: "#ff5a5a",
@@ -343,7 +303,7 @@ export const projects: Project[] = [
 		kind: "app",
 		year: "2026",
 		oneLiner: "Drag files to the screen edge, get a shelf.",
-		description: "A modern Dropshelf replacement for macOS that lives in the menu bar.",
+		description: "Drag a file to the edge of the screen to put it on a shelf.",
 		stack: ["Swift", "macOS"],
 		repo: "https://github.com/empotts/shelfish",
 		color: "#8fd3c7",
@@ -358,18 +318,12 @@ export const skills = {
 
 export const currently = [
 	{ label: "Building", value: "AI dispute workflows" },
-	{ label: "Learning", value: "MEGA.dev AI Engineering" },
+	{ label: "Learning", value: "AI engineering" },
 	{ label: "Shooting", value: "Razorback game days" },
-	{ label: "Playing", value: "Hollow Knight: Silksong" },
-	{ label: "Watching", value: "every Grand Tour stage" },
-	{ label: "Riding", value: "the Razorback Greenway" },
 ];
 
 export const funFacts = [
-	"Went from ultrasound phantoms to Temporal workflows.",
-	"Half of the media team behind the RMB's Macy's Parade application content.",
-	"Owns more lenses than is reasonable.",
-	"Used to play trumpet; now just photographs the people who do.",
-	"Has opinions about Tour de France stage profiles.",
-	"Will build a side project instead of using the existing app.",
+	"Studied biomedical engineering.",
+	"Photographs marching bands.",
+	"Watches every Grand Tour stage.",
 ];
