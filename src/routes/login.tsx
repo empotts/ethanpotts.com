@@ -4,6 +4,7 @@ import { Window } from "@/components/Window";
 import { signIn, signUp } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/login")({
+	head: () => ({ meta: [{ title: "Sign in · Ethan Potts" }, { name: "robots", content: "noindex" }] }),
 	component: LoginPage,
 });
 

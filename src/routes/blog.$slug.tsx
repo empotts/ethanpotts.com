@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback } from "react";
 import { FullscreenModal } from "@/components/FullscreenModal";
 import { ReadingControls, useReadingPrefs } from "@/components/ReadingControls";
+import { seo } from "@/lib/seo";
 import { getPost } from "@/posts/worker";
 
 export const Route = createFileRoute("/blog/$slug")({
@@ -13,13 +14,20 @@ export const Route = createFileRoute("/blog/$slug")({
 		);
 		return { post };
 	},
-	head: ({ loaderData }) => ({
-		meta: [
-			{ title: `${loaderData?.post.data?.title ?? "Post"} · Ethan Potts` },
-			{ name: "description", content: loaderData?.post.data?.description },
-		],
-		styles: [{ children: loaderData?.post.css ?? "" }],
-	}),
+	head: ({ loaderData, params }) => {
+		const data = loaderData?.post.data;
+		const meta = seo({
+			title: data?.title ?? "Post",
+			description: data?.description ?? undefined,
+			path: `/blog/${params.slug}`,
+			type: "article",
+		});
+		return {
+			...meta,
+			meta: [...meta.meta, { property: "article:author", content: "Ethan Potts" }],
+			styles: [{ children: loaderData?.post.css ?? "" }],
+		};
+	},
 	component: Post,
 });
 
