@@ -2,7 +2,7 @@
 
 title: Professional Cycling for Americans
 
-description: A breif overview of professional cycling for the American audience
+description: A brief overview of professional cycling for the American audience
 
 ---
 

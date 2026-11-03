@@ -13,8 +13,7 @@ export const Route = createRootRoute({
 			{ charSet: "utf-8" },
 			{ name: "viewport", content: "width=device-width, initial-scale=1" },
 			{ name: "author", content: profile.name },
-			{ name: "theme-color", content: "#ffffff", media: "(prefers-color-scheme: light)" },
-			{ name: "theme-color", content: "#0b0b0b", media: "(prefers-color-scheme: dark)" },
+			{ name: "theme-color", content: "#ffffff" },
 			...seo({}).meta,
 		],
 		links: [
