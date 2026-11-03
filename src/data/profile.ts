@@ -49,8 +49,10 @@ export const experience: Experience[] = [
 		place: "Rogers, AR",
 		blurb: "Revenue recovery for multiple retailers.",
 		bullets: [
-			"Shared AI workflow on Amazon Bedrock that reads retailer dispute responses.",
-			"End-to-end test suite covering 32 production contracts.",
+			"Built a shared AI workflow on Amazon Bedrock that reads retailer dispute responses and routes the ones it can't match to a person.",
+			"Built an end-to-end test suite that covers 32 production contracts across the web app, worker, queue processor and gateway.",
+			"Build retailer integrations and automated workflows with TypeScript, Temporal, PostgreSQL, RabbitMQ and AWS.",
+			"Made submissions safer with idempotency checks, OpenTelemetry tracing and mutation testing.",
 		],
 		tags: ["TypeScript", "Temporal", "AWS"],
 	},
@@ -62,8 +64,10 @@ export const experience: Experience[] = [
 		place: "Rogers, AR",
 		blurb: "Helped build Navigator, the multi-retailer app.",
 		bullets: [
-			"Started the app on TanStack Start.",
-			"Dispute and repayment workflows on Temporal.",
+			"Started Navigator on TanStack Start, with search, filters and streaming exports.",
+			"Built dispute and repayment workflows on Temporal and Mailgun, including inbound email.",
+			"Built a RabbitMQ-to-Temporal queue processor for onboarding events.",
+			"Automated disputing with readiness checks, supplier settings and daily limits.",
 		],
 		tags: ["TanStack Start", "Temporal"],
 	},
@@ -75,8 +79,10 @@ export const experience: Experience[] = [
 		place: "Rogers, AR",
 		blurb: "Started as an intern. Stayed through the SPS acquisition.",
 		bullets: [
-			"Cut a payment sync step from 30 minutes to two.",
-			"Built the Walgreens data pipeline.",
+			"Cut a payment sync step from over 30 minutes to about two.",
+			"Built the Walgreens data pipeline: retailer files to S3, then to deductions, with duplicate detection.",
+			"Helped split a single-retailer codebase into shared and per-retailer packages.",
+			"Shipped CVS dashboards, exports, bulk disputes and payment reconciliation.",
 		],
 		tags: ["React", "PostgreSQL"],
 	},
@@ -87,7 +93,11 @@ export const experience: Experience[] = [
 		end: "Now",
 		place: "Fayetteville, AR",
 		blurb: "Photo and video for the Razorback Marching Band.",
-		bullets: ["2M+ Instagram impressions in the 2025 season."],
+		bullets: [
+			"2M+ Instagram impressions and 15% follower growth in the 2025 marching season.",
+			"Photo and video for the Razorback Marching Band, Hogwild and the Concert Bands.",
+			"Made content for the band's 2027 Macy's Thanksgiving Day Parade application.",
+		],
 		tags: ["Photo", "Video"],
 	},
 	{
@@ -97,7 +107,10 @@ export const experience: Experience[] = [
 		end: "Now",
 		place: "Rogers, AR",
 		blurb: "Sports and marching arts photography.",
-		bullets: ["Covers AMAA and WGI events."],
+		bullets: [
+			"Covers AMAA and WGI marching arts events across Arkansas.",
+			"Former intern photographer for the Winston-Salem Dash (MiLB).",
+		],
 		tags: ["Photography"],
 	},
 	{
@@ -107,7 +120,11 @@ export const experience: Experience[] = [
 		end: "Jan 2024",
 		place: "Fayetteville, AR",
 		blurb: "Ultrasound blood-flow imaging and signal processing.",
-		bullets: ["Studied blood flow in children with heart defects."],
+		bullets: [
+			"Measured blood flow in children with heart defects using ultrasound and gel phantoms.",
+			"Analyzed heart signals to predict blood loss in hemorrhage.",
+			"Helped write and edit several manuscripts.",
+		],
 		tags: ["MATLAB"],
 	},
 ];
