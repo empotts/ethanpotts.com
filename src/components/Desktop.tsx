@@ -164,10 +164,16 @@ function ProjectWin({ p, onClose }: { p: Project; onClose: () => void }) {
 							Source
 						</a>
 					)}
-					{p.href && (
-						<a href={p.href} target="_blank" rel="noreferrer" className="btn btn-default">
-							Visit
-						</a>
+					{p.href?.startsWith("/") ? (
+						<Link to={p.href} className="btn btn-default">
+							Read
+						</Link>
+					) : (
+						p.href && (
+							<a href={p.href} target="_blank" rel="noreferrer" className="btn btn-default">
+								Visit
+							</a>
+						)
 					)}
 				</div>
 			</div>
