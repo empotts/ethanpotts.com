@@ -26,7 +26,7 @@ function ThemeMenu() {
 	const [theme, setTheme] = useTheme();
 	return (
 		<div className="relative">
-			<button type="button" onClick={() => setOpen((o) => !o)} className={`px-3 py-0.5 ${open ? "bg-black text-white" : ""}`}>
+			<button type="button" onClick={() => setOpen((o) => !o)} className={`px-2 py-0.5 sm:px-3 ${open ? "bg-black text-white" : ""}`}>
 				Theme
 			</button>
 			{open && (
@@ -60,9 +60,9 @@ function MenuBar() {
 	const time = useClock();
 	const [menu, setMenu] = useState(false);
 	return (
-		<div className="fixed inset-x-0 top-0 z-[100] flex h-8 items-center gap-1 border-b-2 border-black bg-white px-2 font-pixel text-[15px]">
+		<div className="fixed inset-x-0 top-0 z-[100] flex h-8 items-center gap-0.5 border-b-2 sm:gap-1 border-black bg-white px-2 font-pixel text-[15px]">
 			<div className="relative">
-				<button type="button" onClick={() => setMenu((m) => !m)} className={`px-3 py-0.5 ${menu ? "bg-black text-white" : ""}`}>
+				<button type="button" onClick={() => setMenu((m) => !m)} className={`px-2 py-0.5 sm:px-3 ${menu ? "bg-black text-white" : ""}`}>
 					EP
 				</button>
 				{menu && (
@@ -85,9 +85,9 @@ function MenuBar() {
 			</div>
 			<Link to="/projects" className="px-2 py-0.5 hover:bg-black hover:text-white sm:px-3">Projects</Link>
 			<Link to="/resume" className="px-2 py-0.5 hover:bg-black hover:text-white sm:px-3">Work</Link>
-			<Link to="/blog" className="hidden px-3 py-0.5 hover:bg-black hover:text-white sm:block">Writing</Link>
+			<Link to="/blog" className="px-2 py-0.5 hover:bg-black hover:text-white sm:px-3">Writing</Link>
 			<ThemeMenu />
-			<span className="ml-auto px-2 whitespace-nowrap tabular-nums">{time}</span>
+			<span className="ml-auto hidden px-2 whitespace-nowrap tabular-nums min-[420px]:inline">{time}</span>
 		</div>
 	);
 }
