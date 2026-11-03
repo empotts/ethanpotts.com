@@ -367,7 +367,7 @@ export const currently = [
 
 export const funFacts = [
 	"Went from ultrasound phantoms to Temporal workflows.",
-	"Made the video that helped send the Razorback Marching Band to the Macy's Parade.",
+	"Half of the media team behind the RMB's Macy's Parade application content.",
 	"Owns more lenses than is reasonable.",
 	"Used to play trumpet; now just photographs the people who do.",
 	"Has opinions about Tour de France stage profiles.",
