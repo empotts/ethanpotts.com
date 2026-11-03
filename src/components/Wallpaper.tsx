@@ -40,13 +40,15 @@ function noise2(x: number, y: number) {
 	return a * (1 - v) + b * v;
 }
 
-function parseColor(c: string): [number, number, number] {
-	const m = c.trim().match(/^#([0-9a-f]{6})$/i);
-	if (m) {
-		const n = Number.parseInt(m[1], 16);
-		return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
-	}
-	return [0, 0, 0];
+/** Any CSS colour → [r, g, b]. The canvas normalises "#fff", "rgb()", names, etc. to #rrggbb. */
+function parseColor(c: string, ctx: CanvasRenderingContext2D): [number, number, number] {
+	ctx.fillStyle = "#000";
+	ctx.fillStyle = c.trim() || "#000";
+	const hex = String(ctx.fillStyle);
+	const m = hex.match(/^#([0-9a-f]{6})$/i);
+	if (!m) return [0, 0, 0];
+	const n = Number.parseInt(m[1], 16);
+	return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
 
 /** Hours since midnight in Rogers, AR (fractional). */
@@ -74,8 +76,8 @@ export function Wallpaper() {
 
 		const readColors = () => {
 			const cs = getComputedStyle(document.documentElement);
-			paper = parseColor(cs.getPropertyValue("--bg"));
-			ink = parseColor(cs.getPropertyValue("--fg"));
+			paper = parseColor(cs.getPropertyValue("--bg"), ctx);
+			ink = parseColor(cs.getPropertyValue("--fg"), ctx);
 		};
 		const resize = () => {
 			w = Math.ceil(canvas.clientWidth / PIXEL);
