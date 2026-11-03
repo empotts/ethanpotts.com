@@ -347,7 +347,7 @@ export const skills = {
 export const currently = [
 	{ label: "Building", value: "AI dispute workflows" },
 	{ label: "Learning", value: "AI engineering" },
-	{ label: "Shooting", value: "Razorback game days" },
+	{ label: "Photographing", value: "Razorback game days" },
 ];
 
 export const funFacts = [
