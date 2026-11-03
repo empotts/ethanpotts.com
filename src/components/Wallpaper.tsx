@@ -185,6 +185,7 @@ export function Wallpaper() {
 		readColors();
 		resize();
 		draw(performance.now());
+		canvas.dataset.ready = "";
 
 		let raf = 0;
 		let last = 0;
@@ -223,7 +224,7 @@ export function Wallpaper() {
 	return (
 		<canvas
 			ref={ref}
-			className="pointer-events-none fixed inset-0 h-full w-full"
+			className="wallpaper pointer-events-none fixed inset-0 h-full w-full"
 			style={{ imageRendering: "pixelated" }}
 			aria-label="Dithered landscape of rolling hills; the sky follows the time of day in Rogers, Arkansas"
 			role="img"

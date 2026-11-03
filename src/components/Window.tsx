@@ -54,8 +54,8 @@ export function Window({
 			initial={boot.hydrated ? { scale: 0.92, opacity: 0 } : false}
 			animate={{ scale: 1, opacity: 1 }}
 			transition={{ duration: 0.12, ease: "easeOut" }}
-			className={`win flex flex-col ${narrow ? "relative mx-3 mb-4 w-auto" : "absolute"}`}
-			style={narrow ? { zIndex: z } : { left: x, top: y, width, zIndex: z, maxHeight: "calc(100vh - 80px)" }}
+			className="win desk-win flex flex-col"
+			style={{ "--x": `${x}px`, "--y": `${y}px`, "--w": `${width}px`, zIndex: z } as React.CSSProperties}
 			aria-label={title}
 		>
 			<header
