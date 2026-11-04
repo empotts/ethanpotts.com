@@ -13,3 +13,13 @@ count.txt
 .vinxi
 todos.json
 .env.production
+.env.*
+!.env*.example
+.dev.vars*
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+id_rsa*
+audit/
