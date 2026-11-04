@@ -61,6 +61,28 @@ function localHour() {
 /** Set while the wallpaper is mounted: returns the current frame as a full-size PNG data URL. */
 export const wallpaperShot: { take: (() => string) | null } = { take: null };
 
+/**
+ * Live switches for the desktop's hidden features. `saver` pans the hills,
+ * `night` forces the night sky, `shoot()` sends a shooting star across it.
+ */
+export const wallpaperMode = {
+	saver: false,
+	night: false,
+	redraw: () => {},
+	shoot: () => {},
+};
+
+/** The Big Dipper, handle to bowl, in star-spacing units. */
+const DIPPER: [number, number][] = [
+	[0, 0],
+	[4, 1.5],
+	[7.5, 2.5],
+	[10.5, 3.8],
+	[11, 7.5],
+	[16, 8.5],
+	[16.5, 4],
+];
+
 export function Wallpaper() {
 	const ref = useRef<HTMLCanvasElement>(null);
 
@@ -93,14 +115,35 @@ export function Wallpaper() {
 		// Stars are fixed positions in sky space.
 		const stars = Array.from({ length: 140 }, (_, i) => ({ x: hash(i + 1), y: hash(i + 77) * 0.6, b: 0.6 + hash(i + 300) * 0.4 }));
 
+		let pan = 0;
+		let lastT = 0;
+		let shotAt = -1e9;
+		let shotHour = -1;
+		const put = (x: number, y: number, c: [number, number, number]) => {
+			if (!img || x < 0 || y < 0 || x >= w || y >= h) return;
+			const i = (y * w + x) * 4;
+			img.data[i] = c[0];
+			img.data[i + 1] = c[1];
+			img.data[i + 2] = c[2];
+		};
+
 		const draw = (t: number) => {
 			if (!img) return;
 			const data = img.data;
 			const hour = localHour();
+			// The screensaver rides sideways through the hills.
+			if (wallpaperMode.saver) pan += Math.min(200, t - lastT) * 0.00025;
+			lastT = t;
 			// Sun is up 6:30–19:30 and arcs across the sky; the moon takes the night.
 			const dayP = (hour - 6.5) / 13;
-			const isDay = dayP > 0 && dayP < 1;
-			const p = isDay ? dayP : (((hour - 19.5 + 24) % 24) / 11);
+			const isDay = !wallpaperMode.night && dayP > 0 && dayP < 1;
+			const p = isDay ? dayP : wallpaperMode.night && dayP > 0 && dayP < 1 ? 0.3 : ((hour - 19.5 + 24) % 24) / 11;
+			// A shooting star at the top of every hour after dark.
+			const hr = Math.floor(hour);
+			if (!isDay && hour - hr < 1 / 60 && shotHour !== hr) {
+				shotHour = hr;
+				shotAt = t;
+			}
 			const bodyX = (0.12 + Math.min(1, p) * 0.76) * w;
 			const bodyY = (0.5 - Math.sin(Math.min(1, p) * Math.PI) * 0.36) * h;
 			const bodyR = Math.max(5, Math.min(w, h) * 0.05);
@@ -115,7 +158,7 @@ export function Wallpaper() {
 			];
 			const ridge = layers.map((L, li) => {
 				const arr = new Float32Array(w);
-				for (let x = 0; x < w; x++) arr[x] = (L.base - fbm1((x / w) * L.freq + t * L.speed + li * 31) * L.amp) * h;
+				for (let x = 0; x < w; x++) arr[x] = (L.base - fbm1((x / w) * L.freq + t * L.speed + pan * (li + 1) * 0.6 + li * 31) * L.amp) * h;
 				return arr;
 			});
 
@@ -168,6 +211,30 @@ export function Wallpaper() {
 					data[i + 3] = 255;
 				}
 			}
+			if (!isDay) {
+				// The Big Dipper, steady and a little brighter than the rest.
+				const u = Math.max(2, Math.min(w, h) / 45);
+				for (const [dx, dy] of DIPPER) {
+					const x = Math.floor(w * 0.56 + dx * u);
+					const y = Math.floor(h * 0.08 + dy * u);
+					if (y >= ridge[0][Math.min(w - 1, Math.max(0, x))]) continue;
+					for (const [ox, oy] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]]) put(x + ox, y + oy, ink);
+				}
+				// Shooting star: a short streak that crosses in under a second.
+				const k = (t - shotAt) / 900;
+				if (k >= 0 && k <= 1) {
+					const x0 = w * 0.18;
+					const y0 = h * 0.06;
+					const x1 = w * 0.5;
+					const y1 = h * 0.3;
+					for (let j = 0; j < 14; j++) {
+						const q = k - j * 0.012;
+						if (q < 0) break;
+						if (j > 8 && j % 2) continue;
+						put(Math.floor(x0 + (x1 - x0) * q), Math.floor(y0 + (y1 - y0) * q), ink);
+					}
+				}
+			}
 			// Stars at night: single pixels that twinkle.
 			if (!isDay) {
 				for (const st of stars) {
@@ -190,6 +257,10 @@ export function Wallpaper() {
 		draw(performance.now());
 		canvas.dataset.ready = "";
 
+		wallpaperMode.redraw = () => draw(performance.now());
+		wallpaperMode.shoot = () => {
+			shotAt = performance.now();
+		};
 		wallpaperShot.take = () => {
 			// Scale back up to screen size without smoothing so the print keeps its dither.
 			const out = document.createElement("canvas");
@@ -206,7 +277,8 @@ export function Wallpaper() {
 		let last = 0;
 		const loop = (t: number) => {
 			raf = requestAnimationFrame(loop);
-			if (document.hidden || t - last < 80) return; // ~12 fps is plenty for drifting clouds
+			// ~12 fps is plenty for drifting clouds; the screensaver pans a little smoother.
+			if (document.hidden || t - last < (wallpaperMode.saver ? 50 : 80)) return;
 			last = t;
 			draw(t);
 		};
@@ -230,6 +302,8 @@ export function Wallpaper() {
 		mq.addEventListener("change", onScheme);
 		return () => {
 			wallpaperShot.take = null;
+			wallpaperMode.redraw = () => {};
+			wallpaperMode.shoot = () => {};
 			cancelAnimationFrame(raf);
 			ro.disconnect();
 			mo.disconnect();

@@ -1,25 +1,49 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { awards, currently, education, experience, type Project, profile, publicProjects } from "@/data/profile";
+import { awards, currently, education, experience, type Project, profile, publicProjects, seasonFrames } from "@/data/profile";
 import type { PostSummary } from "@/posts/worker";
+import { formatTime, setH24, useH24, useNow } from "./clock";
 import { type IconName, PixelIcon } from "./icons";
 import { Logo } from "./Logo";
 import { PregameWin } from "./Pregame";
 import { THEMES, useTheme } from "./theme";
-import { Wallpaper, wallpaperShot } from "./Wallpaper";
+import { Wallpaper, wallpaperMode, wallpaperShot } from "./Wallpaper";
 import { DeskRef, Window } from "./Window";
-import { boot, closeWin, openWin, ROUTE_OF, resetDesk, routeWin, useWindows, type WinId } from "./windows";
+import { boot, closeWin, emptyTrash, openWin, ROUTE_OF, resetDesk, routeWin, trashTarget, useWindows, type WinId } from "./windows";
 
-function useClock() {
-	const [t, setT] = useState("");
-	useEffect(() => {
-		const tick = () =>
-			setT(new Date().toLocaleTimeString("en-US", { timeZone: profile.timezone, hour: "numeric", minute: "2-digit" }));
-		tick();
-		const id = setInterval(tick, 15_000);
-		return () => clearInterval(id);
-	}, []);
-	return t;
+/** Menu-bar clock. Click for 24-hour time; press and hold to see your own time. */
+function MenuClock() {
+	const h24 = useH24();
+	const now = useNow(1000);
+	const [mine, setMine] = useState(false);
+	const hold = useRef<number | undefined>(undefined);
+	const held = useRef(false);
+	const release = () => {
+		clearTimeout(hold.current);
+		if (held.current) setMine(false);
+	};
+	return (
+		<button
+			type="button"
+			onPointerDown={() => {
+				held.current = false;
+				hold.current = window.setTimeout(() => {
+					held.current = true;
+					setMine(true);
+				}, 350);
+			}}
+			onPointerUp={release}
+			onPointerLeave={release}
+			onClick={() => {
+				if (!held.current) setH24(!h24);
+				held.current = false;
+			}}
+			aria-label="Time in Rogers, Arkansas"
+			className="ml-auto hidden px-2 whitespace-nowrap tabular-nums select-none min-[420px]:inline"
+		>
+			{now && (mine ? `You ${formatTime(now, { h24, local: true })}` : formatTime(now, { h24 }))}
+		</button>
+	);
 }
 
 function ThemeMenu() {
@@ -58,10 +82,9 @@ function ThemeMenu() {
 }
 
 function MenuBar() {
-	const time = useClock();
 	const [menu, setMenu] = useState(false);
 	return (
-		<div className="fixed inset-x-0 top-0 z-[100] flex h-8 items-center gap-0.5 border-b-2 sm:gap-1 border-black bg-white px-2 font-ui text-[15px]">
+		<div className="saver-fade fixed inset-x-0 top-0 z-[100] flex h-8 items-center gap-0.5 border-b-2 sm:gap-1 border-black bg-white px-2 font-ui text-[15px]">
 			<div className="relative">
 				<button type="button" onClick={() => setMenu((m) => !m)} className={`px-2 py-0.5 sm:px-3 ${menu ? "bg-black text-white" : ""}`}>
 					EP
@@ -88,19 +111,25 @@ function MenuBar() {
 			<Link to="/resume" className="px-2 py-0.5 hover:bg-black hover:text-white sm:px-3">Work</Link>
 			<Link to="/blog" className="px-2 py-0.5 hover:bg-black hover:text-white sm:px-3">Writing</Link>
 			<ThemeMenu />
-			<span className="ml-auto hidden px-2 whitespace-nowrap tabular-nums min-[420px]:inline">{time}</span>
+			<MenuClock />
 		</div>
 	);
 }
 
-function DeskIcon({ icon, label, onOpen }: { icon: IconName | "logo"; label: string; onOpen: () => void }) {
+type Info = { icon: IconName | "logo"; label: string; rows: [string, string][] };
+
+/** A desktop icon. Option/Alt + double-click (or Alt+Enter) opens Get Info instead. */
+function DeskIcon({ icon, label, onOpen, info, onInfo }: { icon: IconName | "logo"; label: string; onOpen: () => void; info?: [string, string][]; onInfo?: (i: Info) => void }) {
 	const [sel, setSel] = useState(false);
+	const act = (alt: boolean) => (alt && info && onInfo ? onInfo({ icon, label, rows: info }) : onOpen());
 	return (
 		<button
 			type="button"
+			data-desk-icon
 			onClick={() => setSel(true)}
-			onDoubleClick={onOpen}
-			onKeyDown={(e) => e.key === "Enter" && onOpen()}
+			onDoubleClick={(e) => act(e.altKey)}
+			onKeyDown={(e) => e.key === "Enter" && act(e.altKey)}
+			onFocus={() => setSel(true)}
 			onBlur={() => setSel(false)}
 			className="flex w-20 flex-col items-center gap-1 outline-none"
 		>
@@ -342,6 +371,121 @@ function greet() {
 	console.log(`%cSource: https://github.com/empotts/ethanpotts.com\nType "hogs" on the desktop.`, box);
 }
 
+function InfoWin({ info, onClose }: { info: Info; onClose: () => void }) {
+	return (
+		<Window id="info" title={`${info.label} Info`} x={460} y={200} width={300} onClose={onClose}>
+			<div className="p-5">
+				<div className="flex items-center gap-3 border-b-2 border-black pb-3">
+					{info.icon === "logo" ? <Logo size={36} /> : <PixelIcon name={info.icon} size={40} />}
+					<h3 className="font-ui text-lg">{info.label}</h3>
+				</div>
+				<dl className="mt-3 space-y-1 text-sm">
+					{info.rows.map(([k, v]) => (
+						<div key={k} className="flex gap-3">
+							<dt className="w-28 shrink-0 text-right">{k}:</dt>
+							<dd>{v}</dd>
+						</div>
+					))}
+				</dl>
+			</div>
+		</Window>
+	);
+}
+
+function ClockWin({ onClose }: { onClose: () => void }) {
+	const h24 = useH24();
+	const now = useNow(1000);
+	return (
+		<Window id="clock" title="Clock" x={380} y={180} width={300} onClose={onClose}>
+			<div className="p-5 text-center">
+				<div className="font-ui text-4xl tabular-nums">{now ? formatTime(now, { h24, seconds: true }) : "\u00a0"}</div>
+				<div className="mt-1 text-sm">Rogers, Arkansas</div>
+				<div className="mt-4 border-t-2 border-black pt-3 text-sm tabular-nums">Your time: {now ? formatTime(now, { h24, local: true }) : ""}</div>
+				<button type="button" className="btn mt-4" onClick={() => setH24(!h24)}>
+					{h24 ? "12-hour" : "24-hour"}
+				</button>
+			</div>
+		</Window>
+	);
+}
+
+/** Starts after two idle minutes (or on demand); any input ends it. */
+function useScreensaver(enabled: boolean) {
+	const start = useRef(() => {});
+	useEffect(() => {
+		let last = Date.now();
+		let grace = 0;
+		let active = false;
+		const set = (v: boolean) => {
+			active = v;
+			wallpaperMode.saver = v;
+			if (v) document.documentElement.dataset.saver = "";
+			else delete document.documentElement.dataset.saver;
+		};
+		const wake = () => {
+			last = Date.now();
+			if (active && last > grace) set(false);
+		};
+		start.current = () => {
+			grace = Date.now() + 800;
+			set(true);
+		};
+		const id = setInterval(() => {
+			if (enabled && !active && Date.now() - last > 120_000) start.current();
+		}, 5000);
+		const events = ["pointermove", "pointerdown", "keydown", "wheel", "touchstart"] as const;
+		for (const ev of events) window.addEventListener(ev, wake, { passive: true });
+		return () => {
+			clearInterval(id);
+			for (const ev of events) window.removeEventListener(ev, wake);
+			set(false);
+		};
+	}, [enabled]);
+	return () => start.current();
+}
+
+/** Arrow keys move focus between desktop icons, nearest first in that direction. */
+function moveIconFocus(e: React.KeyboardEvent) {
+	const dirs: Record<string, [number, number]> = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] };
+	const d = dirs[e.key];
+	const from = (e.target as HTMLElement).closest<HTMLElement>("[data-desk-icon]");
+	if (!d || !from) return;
+	const a = from.getBoundingClientRect();
+	let best: HTMLElement | null = null;
+	let bestScore = Number.POSITIVE_INFINITY;
+	for (const el of document.querySelectorAll<HTMLElement>("[data-desk-icon]")) {
+		if (el === from) continue;
+		const b = el.getBoundingClientRect();
+		const dx = b.left + b.width / 2 - (a.left + a.width / 2);
+		const dy = b.top + b.height / 2 - (a.top + a.height / 2);
+		const along = dx * d[0] + dy * d[1];
+		if (along <= 1) continue;
+		const score = along + Math.abs(dx * d[1] + dy * d[0]) * 2;
+		if (score < bestScore) {
+			bestScore = score;
+			best = el;
+		}
+	}
+	if (best) {
+		e.preventDefault();
+		best.focus();
+	}
+}
+
+const TITLES: Record<WinId, string> = {
+	about: "About",
+	projects: "Projects",
+	project: "Project",
+	work: "Work",
+	writing: "Writing",
+	contact: "Contact",
+	post: "Post",
+	pregame: "Pregame",
+	photo: "Photo",
+	info: "Info",
+	clock: "Clock",
+};
+
 function ContactWin({ onClose }: { onClose: () => void }) {
 	return (
 		<Window id="contact" title="Contact" x={520} y={260} width={320} onClose={onClose}>
@@ -351,6 +495,9 @@ function ContactWin({ onClose }: { onClose: () => void }) {
 				</a>
 				<a className="block p-1 pl-10 hover:bg-black hover:text-white" href={profile.github} target="_blank" rel="noreferrer">GitHub</a>
 				<a className="block p-1 pl-10 hover:bg-black hover:text-white" href={profile.linkedin} target="_blank" rel="noreferrer">LinkedIn</a>
+				{seasonFrames !== null && (
+					<p className="paper-only border-t border-dashed border-black pt-2 text-xs tabular-nums">frames photographed this season: {seasonFrames.toLocaleString("en-US")}</p>
+				)}
 			</div>
 		</Window>
 	);
@@ -361,7 +508,9 @@ export function Desktop({ posts, children }: { posts: PostSummary[]; children: R
 	const navigate = useNavigate();
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
 	const current = routeWin(pathname);
-	const { open, gen } = useWindows();
+	const { open, gen, trashed } = useWindows();
+	const [info, setInfo] = useState<Info | null>(null);
+	const [night, setNight] = useState(false);
 	const [trash, setTrash] = useState(false);
 	const [selected, setSelected] = useState<string | null>(null);
 	const [project, setProject] = useState<Project | null>(null);
@@ -381,6 +530,23 @@ export function Desktop({ posts, children }: { posts: PostSummary[]; children: R
 			openWin("photo");
 		}, 90);
 	};
+
+	// Never start the screensaver while someone is reading a post.
+	const startSaver = useScreensaver(current !== "post");
+	const showInfo = (i: Info) => {
+		setInfo(i);
+		openWin("info");
+	};
+	const toggleNight = () => {
+		const on = !night;
+		setNight(on);
+		wallpaperMode.night = on;
+		wallpaperMode.redraw();
+		if (on) setTimeout(() => wallpaperMode.shoot(), 400);
+	};
+	const now = new Date();
+	const version = `${now.getFullYear()}.${now.getMonth() + 1}`;
+	const app = (rest: [string, string][]): [string, string][] => [["Kind", "Application"], ...rest, ["Version", version]];
 
 	useEffect(() => {
 		if (current && current !== "post") openWin(current);
@@ -406,23 +572,32 @@ export function Desktop({ posts, children }: { posts: PostSummary[]; children: R
 	return (
 		<DeskRef.Provider value={desk}>
 			<MenuBar />
-			<div ref={desk} className="dither relative min-h-screen overflow-hidden pt-12 max-[720px]:overflow-visible max-[720px]:pb-8">
+			{/* biome-ignore lint/a11y/noStaticElementInteractions: arrow keys only move focus between the icon buttons inside */}
+			<div ref={desk} onKeyDown={moveIconFocus} className="dither relative min-h-screen overflow-hidden pt-12 max-[720px]:overflow-visible max-[720px]:pb-8">
 				<Wallpaper />
-				<div className="absolute top-12 right-4 z-[5] hidden flex-col gap-5 min-[721px]:flex">
-					<DeskIcon icon="logo" label="About" onOpen={() => openWin("about")} />
-					<DeskIcon icon="folder" label="Projects" onOpen={go("projects")} />
-					<DeskIcon icon="briefcase" label="Work" onOpen={go("work")} />
-					<DeskIcon icon="doc" label="Writing" onOpen={go("writing")} />
-					<DeskIcon icon="mail" label="Contact" onOpen={() => openWin("contact")} />
+				<div className="saver-fade absolute top-12 right-4 z-[5] hidden flex-col gap-5 min-[721px]:flex">
+					<DeskIcon icon="logo" label="About" onOpen={() => openWin("about")} onInfo={showInfo} info={[["Kind", "Software engineer"], ["Where", profile.location], ["Working since", "2024"], ["Version", version]]} />
+					<DeskIcon icon="folder" label="Projects" onOpen={go("projects")} onInfo={showInfo} info={[["Kind", "Folder"], ["Items", String(publicProjects.length)]]} />
+					<DeskIcon icon="briefcase" label="Work" onOpen={go("work")} onInfo={showInfo} info={[["Kind", "Folder"], ["Items", `${experience.length} roles`]]} />
+					<DeskIcon icon="doc" label="Writing" onOpen={go("writing")} onInfo={showInfo} info={[["Kind", "Folder"], ["Items", `${posts.length} posts`]]} />
+					<DeskIcon icon="mail" label="Contact" onOpen={() => openWin("contact")} onInfo={showInfo} info={[["Kind", "Card"], ["Email", profile.email]]} />
 				</div>
-				{/* Sits under the About window until it is moved or closed. */}
-				<div className="absolute top-[260px] left-[240px] z-[5] hidden min-[721px]:block">
-					<DeskIcon icon="camera" label="Camera" onOpen={takePhoto} />
+				<div className="saver-fade absolute top-12 right-28 z-[5] hidden flex-col gap-5 min-[721px]:flex">
+					<DeskIcon icon="drum" label="Pregame" onOpen={() => openWin("pregame")} onInfo={showInfo} info={app([["Marchers", "128"], ["Tempo", "152 bpm"]])} />
+					<DeskIcon icon="camera" label="Camera" onOpen={takePhoto} onInfo={showInfo} info={app([["Output", "1-bit PNG"], ["Subject", "The wallpaper"]])} />
+					<DeskIcon icon="clock" label="Clock" onOpen={() => openWin("clock")} onInfo={showInfo} info={app([["Time zone", "America/Chicago"]])} />
+					<DeskIcon icon="moon" label="Night Sky" onOpen={toggleNight} onInfo={showInfo} info={app([["Shows", night ? "Real time" : "Night"]])} />
+					<DeskIcon icon="monitor" label="Screensaver" onOpen={startSaver} onInfo={showInfo} info={app([["Starts after", "2 minutes idle"]])} />
 				</div>
-				<div className="absolute right-4 bottom-4 z-[5] hidden min-[721px]:block">
-					<DeskIcon icon="trash" label="Trash" onOpen={() => setTrash(true)} />
+				<div
+					ref={(el) => {
+						trashTarget.el = el;
+					}}
+					className="saver-fade absolute right-4 bottom-4 z-[5] hidden min-[721px]:block"
+				>
+					<DeskIcon icon={trashed.length ? "trashFull" : "trash"} label="Trash" onOpen={() => setTrash(true)} onInfo={showInfo} info={[["Kind", "Trash"], ["Items", String(trashed.length)]]} />
 				</div>
-				<div key={gen} className="max-[720px]:flex max-[720px]:flex-col-reverse">
+				<div key={gen} className="saver-fade max-[720px]:flex max-[720px]:flex-col-reverse">
 					{visible.has("about") && <AboutWin onClose={close("about")} />}
 					{visible.has("projects") && (
 						<ProjectsWin
@@ -441,6 +616,8 @@ export function Desktop({ posts, children }: { posts: PostSummary[]; children: R
 					{visible.has("contact") && <ContactWin onClose={close("contact")} />}
 					{visible.has("pregame") && <PregameWin onClose={() => closeWin("pregame")} />}
 					{visible.has("photo") && photo && <PhotoWin key={photo.src.length + photo.taken.getTime()} photo={photo} onClose={() => closeWin("photo")} />}
+					{visible.has("info") && info && <InfoWin key={info.label} info={info} onClose={() => closeWin("info")} />}
+					{visible.has("clock") && <ClockWin onClose={() => closeWin("clock")} />}
 				</div>
 				{children}
 				{flash && <div className="pointer-events-none fixed inset-0 z-[300] bg-black" />}
@@ -448,10 +625,21 @@ export function Desktop({ posts, children }: { posts: PostSummary[]; children: R
 					<div className="fixed inset-0 z-[200] flex items-center justify-center bg-white/50">
 						<div className="win w-80 p-5" role="alertdialog" aria-label="Trash">
 							<div className="flex gap-4">
-								<PixelIcon name="trash" size={40} />
-								<p className="text-sm">The Trash is empty. Everything here was worth keeping.</p>
+								<PixelIcon name={trashed.length ? "trashFull" : "trash"} size={40} />
+								{trashed.length ? (
+									<p className="text-sm">
+										In the Trash: {trashed.map((id) => TITLES[id]).join(", ")}.
+									</p>
+								) : (
+									<p className="text-sm">The Trash is empty. Everything here was worth keeping.</p>
+								)}
 							</div>
-							<div className="mt-5 text-right">
+							<div className="mt-5 flex justify-end gap-3">
+								{trashed.length > 0 && (
+									<button type="button" className="btn" onClick={() => { emptyTrash(); setTrash(false); }}>
+										Empty Trash
+									</button>
+								)}
 								<button type="button" className="btn btn-default" onClick={() => setTrash(false)}>
 									OK
 								</button>

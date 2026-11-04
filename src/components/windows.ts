@@ -1,9 +1,9 @@
 import { useSyncExternalStore } from "react";
 
-export type WinId = "about" | "projects" | "project" | "work" | "writing" | "contact" | "post" | "pregame" | "photo";
+export type WinId = "about" | "projects" | "project" | "work" | "writing" | "contact" | "post" | "pregame" | "photo" | "info" | "clock";
 
-type State = { open: WinId[]; order: WinId[]; gen: number };
-let state: State = { open: ["about"], order: ["about"], gen: 0 };
+type State = { open: WinId[]; order: WinId[]; gen: number; trashed: WinId[] };
+let state: State = { open: ["about"], order: ["about"], gen: 0, trashed: [] };
 const subs = new Set<() => void>();
 const emit = () => {
 	for (const s of subs) s();
@@ -28,9 +28,22 @@ export function closeWin(id: WinId) {
 }
 /** Close everything and put windows back where they started. */
 export function resetDesk() {
-	state = { open: ["about"], order: ["about"], gen: state.gen + 1 };
+	state = { ...state, open: ["about"], order: ["about"], gen: state.gen + 1 };
 	emit();
 }
+
+/** A window dragged onto the Trash is closed and listed there until the Trash is emptied. */
+export function trashWin(id: WinId) {
+	closeWin(id);
+	state = { ...state, trashed: [...state.trashed.filter((x) => x !== id), id] };
+	emit();
+}
+export function emptyTrash() {
+	state = { ...state, trashed: [] };
+	emit();
+}
+/** The Trash icon element, so a window drop can be tested against it. */
+export const trashTarget: { el: HTMLElement | null } = { el: null };
 
 export function useWindows() {
 	return useSyncExternalStore(

@@ -309,6 +309,9 @@ export const skills = {
 	also: ["Python", "C++", "Swift", "MATLAB", "R", "Three.js"],
 };
 
+/** Frames photographed this marching season. Shown only in the Paper theme; hidden while null. */
+export const seasonFrames: number | null = null;
+
 export const currently = [
 	{ label: "Building", value: "AI dispute workflows" },
 	{ label: "Learning", value: "AI engineering" },

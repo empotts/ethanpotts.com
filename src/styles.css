@@ -187,3 +187,61 @@ p, li { text-wrap: pretty; }
 
 /* the code-highlighting theme expects a .dark class; keep code readable on any theme */
 .doc pre, .doc pre * { background: transparent !important; color: var(--fg) !important; }
+
+/* Screensaver: everything but the wallpaper fades while the hills pan. */
+.saver-fade {
+	transition: opacity 0.8s;
+}
+[data-saver] .saver-fade {
+	opacity: 0;
+	pointer-events: none;
+}
+[data-saver] body {
+	cursor: none;
+}
+
+/* Only the Paper theme shows the season's shutter count. */
+.paper-only { display: none; }
+[data-theme="paper"] .paper-only { display: block; }
+
+/* Theme touches: an LCD pixel grid on Handheld, scanlines and a cursor on the CRT themes. */
+[data-theme="handheld"] body::after,
+[data-theme="phosphor"] body::after,
+[data-theme="amber"] body::after {
+	content: "";
+	position: fixed;
+	inset: 0;
+	z-index: 400;
+	pointer-events: none;
+}
+[data-theme="handheld"] body::after {
+	background-image:
+		linear-gradient(color-mix(in srgb, var(--fg) 7%, transparent) 1px, transparent 1px),
+		linear-gradient(90deg, color-mix(in srgb, var(--fg) 7%, transparent) 1px, transparent 1px);
+	background-size: 3px 3px;
+}
+[data-theme="phosphor"] body::after,
+[data-theme="amber"] body::after {
+	background: repeating-linear-gradient(transparent 0 2px, color-mix(in srgb, var(--bg) 35%, transparent) 2px 3px);
+	animation: crt-flicker 6s steps(1) infinite;
+}
+[data-theme="phosphor"] .titlebar h2::after,
+[data-theme="amber"] .titlebar h2::after {
+	content: "█";
+	margin-left: 0.35em;
+	animation: cursor-blink 1s steps(1) infinite;
+}
+@keyframes crt-flicker {
+	0%, 100% { opacity: 1; }
+	47% { opacity: 0.85; }
+	48% { opacity: 1; }
+}
+@keyframes cursor-blink {
+	50% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+	[data-theme] body::after,
+	[data-theme] .titlebar h2::after {
+		animation: none;
+	}
+}
