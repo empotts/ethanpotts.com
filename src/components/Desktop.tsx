@@ -4,8 +4,9 @@ import { awards, currently, education, experience, type Project, profile, public
 import type { PostSummary } from "@/posts/worker";
 import { type IconName, PixelIcon } from "./icons";
 import { Logo } from "./Logo";
+import { PregameWin } from "./Pregame";
 import { THEMES, useTheme } from "./theme";
-import { Wallpaper } from "./Wallpaper";
+import { Wallpaper, wallpaperShot } from "./Wallpaper";
 import { DeskRef, Window } from "./Window";
 import { boot, closeWin, openWin, ROUTE_OF, resetDesk, routeWin, useWindows, type WinId } from "./windows";
 
@@ -277,6 +278,70 @@ function AboutWin({ onClose }: { onClose: () => void }) {
 	);
 }
 
+type Photo = { src: string; taken: Date };
+
+function PhotoWin({ photo, onClose }: { photo: Photo; onClose: () => void }) {
+	const when = photo.taken.toLocaleString("en-US", { timeZone: profile.timezone, month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+	const stamp = photo.taken.toLocaleString("sv-SE", { timeZone: profile.timezone }).slice(0, 16).replace(/[-: ]/g, "");
+	return (
+		<Window id="photo" title="Photo" x={300} y={120} width={400} onClose={onClose}>
+			<div className="p-3">
+				<img src={photo.src} alt="The desktop wallpaper: dithered Ozark hills" className="block w-full border-2 border-black" style={{ imageRendering: "pixelated" }} />
+				<div className="mt-2 flex items-center justify-between gap-3 text-xs">
+					<span>
+						Rogers, AR · {when}
+						<br />
+						f/8 · 1/250 · ISO 100
+					</span>
+					<a href={photo.src} download={`ozarks-${stamp}.png`} className="btn">
+						Save
+					</a>
+				</div>
+			</div>
+		</Window>
+	);
+}
+
+/** Typed words that open hidden windows. Ignored while typing in a field. */
+function useTypedWords(words: Record<string, () => void>) {
+	const ref = useRef(words);
+	ref.current = words;
+	useEffect(() => {
+		let buf = "";
+		const onKey = (e: KeyboardEvent) => {
+			const el = e.target as HTMLElement | null;
+			if (e.metaKey || e.ctrlKey || e.altKey || el?.closest("input, textarea, [contenteditable]")) return;
+			if (e.key.length !== 1) return;
+			buf = (buf + e.key.toLowerCase()).slice(-12);
+			for (const [w, fn] of Object.entries(ref.current)) if (buf.endsWith(w)) {
+				buf = "";
+				fn();
+			}
+		};
+		window.addEventListener("keydown", onKey);
+		return () => window.removeEventListener("keydown", onKey);
+	}, []);
+}
+
+let greeted = false;
+function greet() {
+	if (greeted) return;
+	greeted = true;
+	const cs = getComputedStyle(document.documentElement);
+	const fg = cs.getPropertyValue("--fg").trim() || "#000";
+	const bg = cs.getPropertyValue("--bg").trim() || "#fff";
+	const art = [
+		" ███████ ██████ ",
+		" ██      ██   ██",
+		" █████   ██████ ",
+		" ██      ██     ",
+		" ███████ ██     ",
+	].join("\n");
+	const box = `color:${fg};background:${bg};font-family:monospace;padding:2px 6px;`;
+	console.log(`%c${art}`, `${box}line-height:1.1;`);
+	console.log(`%cSource: https://github.com/empotts/ethanpotts.com\nType "hogs" on the desktop.`, box);
+}
+
 function ContactWin({ onClose }: { onClose: () => void }) {
 	return (
 		<Window id="contact" title="Contact" x={520} y={260} width={320} onClose={onClose}>
@@ -300,6 +365,22 @@ export function Desktop({ posts, children }: { posts: PostSummary[]; children: R
 	const [trash, setTrash] = useState(false);
 	const [selected, setSelected] = useState<string | null>(null);
 	const [project, setProject] = useState<Project | null>(null);
+	const [photo, setPhoto] = useState<Photo | null>(null);
+	const [flash, setFlash] = useState(false);
+
+	useTypedWords({ hogs: () => openWin("pregame"), band: () => openWin("pregame") });
+	useEffect(greet, []);
+
+	const takePhoto = () => {
+		const src = wallpaperShot.take?.();
+		if (!src) return;
+		setFlash(true);
+		setTimeout(() => {
+			setFlash(false);
+			setPhoto({ src, taken: new Date() });
+			openWin("photo");
+		}, 90);
+	};
 
 	useEffect(() => {
 		if (current && current !== "post") openWin(current);
@@ -334,6 +415,10 @@ export function Desktop({ posts, children }: { posts: PostSummary[]; children: R
 					<DeskIcon icon="doc" label="Writing" onOpen={go("writing")} />
 					<DeskIcon icon="mail" label="Contact" onOpen={() => openWin("contact")} />
 				</div>
+				{/* Sits under the About window until it is moved or closed. */}
+				<div className="absolute top-[260px] left-[240px] z-[5] hidden min-[721px]:block">
+					<DeskIcon icon="camera" label="Camera" onOpen={takePhoto} />
+				</div>
 				<div className="absolute right-4 bottom-4 z-[5] hidden min-[721px]:block">
 					<DeskIcon icon="trash" label="Trash" onOpen={() => setTrash(true)} />
 				</div>
@@ -354,8 +439,11 @@ export function Desktop({ posts, children }: { posts: PostSummary[]; children: R
 					{visible.has("work") && <WorkWin onClose={close("work")} />}
 					{visible.has("writing") && <WritingWin onClose={close("writing")} posts={posts} />}
 					{visible.has("contact") && <ContactWin onClose={close("contact")} />}
+					{visible.has("pregame") && <PregameWin onClose={() => closeWin("pregame")} />}
+					{visible.has("photo") && photo && <PhotoWin key={photo.src.length + photo.taken.getTime()} photo={photo} onClose={() => closeWin("photo")} />}
 				</div>
 				{children}
+				{flash && <div className="pointer-events-none fixed inset-0 z-[300] bg-black" />}
 				{trash && (
 					<div className="fixed inset-0 z-[200] flex items-center justify-center bg-white/50">
 						<div className="win w-80 p-5" role="alertdialog" aria-label="Trash">

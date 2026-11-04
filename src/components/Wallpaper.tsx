@@ -58,6 +58,9 @@ function localHour() {
 	return (get("hour") % 24) + get("minute") / 60;
 }
 
+/** Set while the wallpaper is mounted: returns the current frame as a full-size PNG data URL. */
+export const wallpaperShot: { take: (() => string) | null } = { take: null };
+
 export function Wallpaper() {
 	const ref = useRef<HTMLCanvasElement>(null);
 
@@ -187,6 +190,18 @@ export function Wallpaper() {
 		draw(performance.now());
 		canvas.dataset.ready = "";
 
+		wallpaperShot.take = () => {
+			// Scale back up to screen size without smoothing so the print keeps its dither.
+			const out = document.createElement("canvas");
+			out.width = w * PIXEL;
+			out.height = h * PIXEL;
+			const o = out.getContext("2d");
+			if (!o) return canvas.toDataURL("image/png");
+			o.imageSmoothingEnabled = false;
+			o.drawImage(canvas, 0, 0, out.width, out.height);
+			return out.toDataURL("image/png");
+		};
+
 		let raf = 0;
 		let last = 0;
 		const loop = (t: number) => {
@@ -214,6 +229,7 @@ export function Wallpaper() {
 		};
 		mq.addEventListener("change", onScheme);
 		return () => {
+			wallpaperShot.take = null;
 			cancelAnimationFrame(raf);
 			ro.disconnect();
 			mo.disconnect();

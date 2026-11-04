@@ -9,6 +9,7 @@ export const THEMES = [
 	{ id: "blueprint", label: "Blueprint" },
 	{ id: "handheld", label: "Handheld" },
 	{ id: "paper", label: "Paper" },
+	{ id: "razorback", label: "Razorback" },
 ] as const;
 
 export type ThemeId = (typeof THEMES)[number]["id"];

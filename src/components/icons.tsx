@@ -126,6 +126,24 @@ const ICONS: Record<string, string[]> = {
 		"................",
 		"................",
 	],
+	camera: [
+		"................",
+		"................",
+		".....######.....",
+		"....#oooooo#....",
+		".##############.",
+		".#oooooooooo#o#.",
+		".#oooo####oooo#.",
+		".#ooo#oooo#ooo#.",
+		".#oo#oo##oo#oo#.",
+		".#oo#oo##oo#oo#.",
+		".#ooo#oooo#ooo#.",
+		".#oooo####oooo#.",
+		".#oooooooooooo#.",
+		".##############.",
+		"................",
+		"................",
+	],
 };
 
 export type IconName = keyof typeof ICONS;

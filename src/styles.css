@@ -34,6 +34,7 @@
 [data-theme="blueprint"] { --bg: #0c2d6b; --fg: #e6efff; }
 [data-theme="handheld"] { --bg: #9bbc0f; --fg: #0f380f; }
 [data-theme="paper"] { --bg: #f2ead8; --fg: #3b2f22; }
+[data-theme="razorback"] { --bg: #ffffff; --fg: #9d2235; }
 
 html {
 	background: var(--bg);
