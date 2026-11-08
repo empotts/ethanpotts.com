@@ -1,11 +1,13 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { awards, currently, education, experience, type Project, profile, publicProjects, seasonFrames } from "@/data/profile";
+import { formatDay } from "@/lib/dates";
 import type { PostSummary } from "@/posts/worker";
 import { formatTime, setH24, useH24, useNow } from "./clock";
 import { type IconName, PixelIcon } from "./icons";
 import { Logo } from "./Logo";
 import { PregameWin } from "./Pregame";
+import { ExportResumeButton } from "./ResumePrint";
 import { THEMES, useTheme } from "./theme";
 import { Wallpaper, wallpaperMode, wallpaperShot } from "./Wallpaper";
 import { DeskRef, Window } from "./Window";
@@ -46,71 +48,92 @@ function MenuClock() {
 	);
 }
 
-function ThemeMenu() {
-	const [open, setOpen] = useState(false);
-	const [theme, setTheme] = useTheme();
+type DesktopApp = { icon: IconName | "logo"; label: string; onOpen: () => void; info: [string, string][] };
+
+/** A disclosure: normal buttons stay in the tab order, with Escape and outside dismissal. */
+function ToolbarMenu({ label, name, open, onToggle, onClose, children, wide = false, alignEnd = false }: {
+	label: React.ReactNode; name: string; open: boolean; onToggle: () => void; onClose: () => void; children: React.ReactNode; wide?: boolean; alignEnd?: boolean;
+}) {
+	const ref = useRef<HTMLDivElement>(null);
+	const id = useId();
+	useEffect(() => {
+		if (!open) return;
+		const outside = (e: PointerEvent) => {
+			if (!ref.current?.contains(e.target as Node)) onClose();
+		};
+		const escape = (e: KeyboardEvent) => {
+			if (e.key !== "Escape") return;
+			e.preventDefault();
+			onClose();
+			ref.current?.querySelector("button")?.focus();
+		};
+		document.addEventListener("pointerdown", outside);
+		document.addEventListener("keydown", escape);
+		return () => {
+			document.removeEventListener("pointerdown", outside);
+			document.removeEventListener("keydown", escape);
+		};
+	}, [open, onClose]);
 	return (
-		<div className="relative">
-			<button type="button" onClick={() => setOpen((o) => !o)} className={`px-2 py-0.5 sm:px-3 ${open ? "bg-black text-white" : ""}`}>
-				Theme
+		<div ref={ref} className="relative">
+			<button type="button" aria-label={name} title={name} aria-expanded={open} aria-controls={id} onClick={onToggle}
+				className={`toolbar-trigger flex min-h-11 min-w-11 items-center justify-center gap-2 px-2 min-[721px]:min-h-7 min-[721px]:px-3 ${open ? "bg-black text-white" : "hover:bg-black hover:text-white"}`}>
+				{label}
 			</button>
-			{open && (
-				<>
-					<button type="button" className="fixed inset-0 cursor-default" aria-label="Close menu" onClick={() => setOpen(false)} />
-					<div className="win absolute top-7 right-0 w-52 py-1 sm:right-auto sm:left-0" role="menu">
-						{THEMES.map((t) => (
-							<button
-								key={t.id}
-								type="button"
-								role="menuitemradio"
-								aria-checked={theme === t.id}
-								className="flex w-full items-center gap-2 px-3 py-1 text-left hover:bg-black hover:text-white"
-								onClick={() => {
-									setTheme(t.id);
-									setOpen(false);
-								}}
-							>
-								<span className="w-3">{theme === t.id ? "✓" : ""}</span>
-								{t.label}
-							</button>
-						))}
-					</div>
-				</>
-			)}
+			{open && <div id={id} aria-label={name} className={`mobile-menu win scroll-retro fixed inset-x-3 top-14 max-h-[calc(100dvh-5rem)] overflow-y-auto p-2 min-[721px]:absolute min-[721px]:inset-x-auto min-[721px]:top-8 ${wide ? "min-[721px]:w-80" : "min-[721px]:w-56"} ${wide || alignEnd ? "min-[721px]:right-0" : "min-[721px]:left-0"}`}>
+				{children}
+			</div>}
 		</div>
 	);
 }
 
-function MenuBar() {
-	const [menu, setMenu] = useState(false);
+function ThemeMenu({ open, onToggle, onClose }: { open: boolean; onToggle: () => void; onClose: () => void }) {
+	const [theme, setTheme] = useTheme();
 	return (
-		<div className="saver-fade fixed inset-x-0 top-0 z-[100] flex h-8 items-center gap-0.5 border-b-2 sm:gap-1 border-black bg-white px-2 font-ui text-[15px]">
-			<div className="relative">
-				<button type="button" onClick={() => setMenu((m) => !m)} className={`px-2 py-0.5 sm:px-3 ${menu ? "bg-black text-white" : ""}`}>
-					EP
+		<ToolbarMenu name="Choose theme" alignEnd label={<span><span className="theme-sun"><PixelIcon name="sun" size={22} /></span><span className="theme-moon"><PixelIcon name="moon" size={22} /></span></span>} open={open} onToggle={onToggle} onClose={onClose}>
+			{THEMES.map((t) => (
+				<button key={t.id} type="button" aria-pressed={theme === t.id}
+					className="flex min-h-11 w-full items-center gap-2 px-3 text-left hover:bg-black hover:text-white min-[721px]:min-h-8"
+					onClick={() => { setTheme(t.id); onClose(); }}>
+					<span className="w-3" aria-hidden>{theme === t.id ? "✓" : ""}</span>{t.label}
 				</button>
-				{menu && (
-					<>
-						<button type="button" className="fixed inset-0 cursor-default" aria-label="Close menu" onClick={() => setMenu(false)} />
-						<div className="win absolute top-7 left-0 w-56 py-1">
-							<button type="button" className="block w-full px-4 py-1 text-left hover:bg-black hover:text-white" onClick={() => { openWin("about"); setMenu(false); }}>
-								About Ethan
-							</button>
-							<button type="button" className="block w-full px-4 py-1 text-left hover:bg-black hover:text-white" onClick={() => { openWin("contact"); setMenu(false); }}>
-								Contact
-							</button>
-							<div className="my-1 border-t border-dashed border-black" />
-							<button type="button" className="block w-full px-4 py-1 text-left hover:bg-black hover:text-white" onClick={() => { resetDesk(); setMenu(false); }}>
-								Clean up desktop
-							</button>
-						</div>
-					</>
-				)}
+			))}
+		</ToolbarMenu>
+	);
+}
+
+function AppShortcut({ app, onLaunch, compact = false }: { app: DesktopApp; onLaunch: (app: DesktopApp) => void; compact?: boolean }) {
+	return (
+		<button type="button" onClick={() => onLaunch(app)} className={`${compact ? "" : "app-shortcut"} flex min-h-16 min-w-0 flex-col items-center justify-start gap-1 p-2 text-center focus-visible:outline-2 focus-visible:outline-offset-2 ${compact ? "px-0.5" : "hover:bg-black hover:text-white focus-visible:bg-black focus-visible:text-white"}`}>
+			<span>{app.icon === "logo" ? <Logo size={32} /> : <PixelIcon name={app.icon} size={compact ? 28 : 32} />}</span>
+			<span className={`font-ui leading-tight ${compact ? "bg-white text-[11px]" : "text-xs"}`}>{compact && app.label === "Screensaver" ? "Screen saver" : app.label}</span>
+		</button>
+	);
+}
+
+function MenuBar({ apps }: { apps: DesktopApp[] }) {
+	const [menu, setMenu] = useState<"site" | "apps" | "theme" | null>(null);
+	const close = () => setMenu(null);
+	const toggle = (name: "site" | "apps" | "theme") => () => setMenu((m) => m === name ? null : name);
+	const launch = (app: DesktopApp) => { close(); app.onOpen(); if (window.matchMedia("(max-width: 720px)").matches) window.scrollTo(0, 0); };
+	return (
+		<div className="menu-bar saver-fade fixed inset-x-0 top-0 z-[100] flex h-12 items-center gap-0.5 border-b-2 border-black bg-white px-2 font-ui text-sm min-[721px]:h-8 min-[721px]:gap-1 min-[721px]:text-[15px]">
+			<ToolbarMenu name="Ethan Potts menu" label="EP" open={menu === "site"} onToggle={toggle("site")} onClose={close}>
+				<button type="button" className="block min-h-11 w-full px-3 text-left hover:bg-black hover:text-white" onClick={() => { openWin("about"); close(); }}>About Ethan</button>
+				<button type="button" className="block min-h-11 w-full px-3 text-left hover:bg-black hover:text-white" onClick={() => { openWin("contact"); close(); }}>Contact</button>
+				<div className="my-1 border-t border-dashed border-black" />
+				<button type="button" className="block min-h-11 w-full px-3 text-left hover:bg-black hover:text-white" onClick={() => { resetDesk(); close(); }}>Clean up desktop</button>
+			</ToolbarMenu>
+			<Link to="/projects" className="flex min-h-11 items-center px-2 hover:bg-black hover:text-white min-[721px]:min-h-7 min-[721px]:px-3">Projects</Link>
+			<Link to="/resume" className="hidden px-3 py-0.5 hover:bg-black hover:text-white min-[721px]:block">Work</Link>
+			<Link to="/blog" className="hidden px-3 py-0.5 hover:bg-black hover:text-white min-[721px]:block">Writing</Link>
+			<div className="ml-auto min-[721px]:ml-0">
+				<ToolbarMenu name="Apps" label={<><PixelIcon name="app" size={18} />Apps</>} open={menu === "apps"} onToggle={toggle("apps")} onClose={close} wide>
+					<p className="border-b border-black px-2 pb-2 font-ui text-xs">On the desktop</p>
+					<div className="grid grid-cols-3 gap-1 pt-2">{apps.map((app) => <AppShortcut key={app.label} app={app} onLaunch={launch} />)}</div>
+				</ToolbarMenu>
 			</div>
-			<Link to="/projects" className="px-2 py-0.5 hover:bg-black hover:text-white sm:px-3">Projects</Link>
-			<Link to="/resume" className="px-2 py-0.5 hover:bg-black hover:text-white sm:px-3">Work</Link>
-			<Link to="/blog" className="px-2 py-0.5 hover:bg-black hover:text-white sm:px-3">Writing</Link>
-			<ThemeMenu />
+			<ThemeMenu open={menu === "theme"} onToggle={toggle("theme")} onClose={close} />
 			<MenuClock />
 		</div>
 	);
@@ -131,7 +154,7 @@ function DeskIcon({ icon, label, onOpen, info, onInfo }: { icon: IconName | "log
 			onKeyDown={(e) => e.key === "Enter" && act(e.altKey)}
 			onFocus={() => setSel(true)}
 			onBlur={() => setSel(false)}
-			className="flex w-20 flex-col items-center gap-1 outline-none"
+			className="flex h-20 w-20 shrink-0 flex-col items-center gap-1 outline-none"
 		>
 			{icon === "logo" ? (
 				<span className={`flex size-10 items-center justify-center ${sel ? "bg-black" : ""}`}>
@@ -140,7 +163,7 @@ function DeskIcon({ icon, label, onOpen, info, onInfo }: { icon: IconName | "log
 			) : (
 				<PixelIcon name={icon} size={40} inverted={sel} />
 			)}
-			<span className={`px-1 font-ui text-[13px] leading-tight ${sel ? "bg-black text-white" : "bg-white"}`}>{label}</span>
+			<span className={`px-1 text-center font-ui text-[13px] leading-tight ${sel ? "bg-black text-white" : "bg-white"}`}>{label}</span>
 		</button>
 	);
 }
@@ -215,6 +238,10 @@ function WorkWin({ onClose }: { onClose: () => void }) {
 	return (
 		<Window id="work" title="Work" x={340} y={110} width={620} onClose={onClose}>
 			<div className="divide-y-2 divide-black">
+				<div className="flex items-center justify-between gap-3 px-5 py-3">
+					<span className="font-ui text-sm">{experience.length} roles</span>
+					<ExportResumeButton />
+				</div>
 				{experience.map((e) => (
 					<article key={e.role + e.start} className="p-5">
 						<div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -266,8 +293,9 @@ function WritingWin({ onClose, posts }: { onClose: () => void; posts: PostSummar
 						<Link to="/blog/$slug" params={{ slug: post.slug }} className="flex items-center gap-3 p-2 hover:bg-black hover:text-white">
 							<PixelIcon name="doc" size={28} />
 							<span>
-								<span className="block font-ui leading-tight">{String(post.data?.title ?? "Untitled")}</span>
-								{post.data?.description && <span className="block text-xs">{post.data.description}</span>}
+								<span className="block font-ui leading-tight">{post.data.title}</span>
+								{post.data.description && <span className="block text-xs">{post.data.description}</span>}
+								{post.data.date && <span className="mt-0.5 block font-ui text-[11px]">{formatDay(post.data.date)} · {post.data.minutes} min</span>}
 							</span>
 						</Link>
 					</li>
@@ -298,12 +326,36 @@ function AboutWin({ onClose }: { onClose: () => void }) {
 						</div>
 					))}
 				</div>
+				<CurlCallout />
 				<div className="mt-5 flex flex-wrap gap-3">
 					<Link to="/projects" className="btn btn-default">Projects</Link>
 					<Link to="/resume" className="btn">Work</Link>
 				</div>
 			</div>
 		</Window>
+	);
+}
+
+/** The whole site also prints in a terminal; click to copy the command. */
+function CurlCallout() {
+	const [copied, setCopied] = useState(false);
+	const command = "curl ethanpotts.com";
+	return (
+		<button
+			type="button"
+			onClick={() => {
+				navigator.clipboard?.writeText(command).then(() => {
+					setCopied(true);
+					setTimeout(() => setCopied(false), 1500);
+				}, () => {});
+			}}
+			title="Copy command"
+			className="mt-3 flex w-full items-center gap-3 border-2 border-black bg-black px-3 py-2 text-left font-mono text-sm text-white"
+		>
+			<span aria-hidden>$</span>
+			<span className="flex-1">{command}</span>
+			<span className="font-ui text-xs" aria-live="polite">{copied ? "Copied" : "Try it in a terminal"}</span>
+		</button>
 	);
 }
 
@@ -508,7 +560,7 @@ export function Desktop({ posts, children }: { posts: PostSummary[]; children: R
 	const navigate = useNavigate();
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
 	const current = routeWin(pathname);
-	const { open, gen, trashed } = useWindows();
+	const { open, gen, trashed, opened } = useWindows();
 	const [info, setInfo] = useState<Info | null>(null);
 	const [night, setNight] = useState(false);
 	const [trash, setTrash] = useState(false);
@@ -552,8 +604,29 @@ export function Desktop({ posts, children }: { posts: PostSummary[]; children: R
 		if (current && current !== "post") openWin(current);
 	}, [current]);
 
+	// Opening a window from the menu bar while reading leaves the article for the desktop.
+	const openedAt = useRef(opened);
 	useEffect(() => {
-		boot.hydrated = true;
+		if (opened === openedAt.current) return;
+		openedAt.current = opened;
+		if (current === "post") navigate({ to: "/" });
+	}, [opened, current, navigate]);
+
+	// Windows and articles animate in only once someone acts. Route code hydrates in
+	// its own pass after this component, so flipping the flag on mount replayed the
+	// entrance animation on every reload.
+	useEffect(() => {
+		const stop = () => {
+			window.removeEventListener("pointerdown", arm, true);
+			window.removeEventListener("keydown", arm, true);
+		};
+		const arm = () => {
+			boot.hydrated = true;
+			stop();
+		};
+		window.addEventListener("pointerdown", arm, true);
+		window.addEventListener("keydown", arm, true);
+		return stop;
 	}, []);
 
 	const visible = new Set<WinId>(open);
@@ -569,25 +642,33 @@ export function Desktop({ posts, children }: { posts: PostSummary[]; children: R
 		else openWin(id);
 	};
 
+	const mainApps: DesktopApp[] = [
+		{ icon: "logo", label: "About", onOpen: () => openWin("about"), info: [["Kind", "Software engineer"], ["Where", profile.location], ["Working since", "2024"], ["Version", version]] },
+		{ icon: "folder", label: "Projects", onOpen: go("projects"), info: [["Kind", "Folder"], ["Items", String(publicProjects.length)]] },
+		{ icon: "briefcase", label: "Work", onOpen: go("work"), info: [["Kind", "Folder"], ["Items", `${experience.length} roles`]] },
+		{ icon: "doc", label: "Writing", onOpen: go("writing"), info: [["Kind", "Folder"], ["Items", `${posts.length} posts`]] },
+		{ icon: "mail", label: "Contact", onOpen: () => openWin("contact"), info: [["Kind", "Card"], ["Email", profile.email]] },
+	];
+	const extras: DesktopApp[] = [
+		{ icon: "drum", label: "Pregame", onOpen: () => openWin("pregame"), info: app([["Marchers", "245"], ["Tempo", "152 bpm · 1.6× playback"]]) },
+		{ icon: "camera", label: "Camera", onOpen: takePhoto, info: app([["Output", "1-bit PNG"], ["Subject", "The wallpaper"]]) },
+		{ icon: "clock", label: "Clock", onOpen: () => openWin("clock"), info: app([["Time zone", "America/Chicago"]]) },
+		{ icon: "moon", label: "Night Sky", onOpen: toggleNight, info: app([["Shows", night ? "Real time" : "Night"]]) },
+		{ icon: "monitor", label: "Screensaver", onOpen: startSaver, info: app([["Starts after", "2 minutes idle"]]) },
+	];
+	const trashApp: DesktopApp = { icon: trashed.length ? "trashFull" : "trash", label: "Trash", onOpen: () => setTrash(true), info: [["Kind", "Trash"], ["Items", String(trashed.length)]] };
+
 	return (
 		<DeskRef.Provider value={desk}>
-			<MenuBar />
+			<MenuBar apps={[...mainApps, ...extras, trashApp]} />
 			{/* biome-ignore lint/a11y/noStaticElementInteractions: arrow keys only move focus between the icon buttons inside */}
-			<div ref={desk} onKeyDown={moveIconFocus} className="dither relative min-h-screen overflow-hidden pt-12 max-[720px]:overflow-visible max-[720px]:pb-8">
+			<div ref={desk} onKeyDown={moveIconFocus} className="desktop-surface dither relative min-h-screen overflow-hidden pt-16 min-[721px]:pt-12 max-[720px]:overflow-visible max-[720px]:pb-8">
 				<Wallpaper />
-				<div className="saver-fade absolute top-12 right-4 z-[5] hidden flex-col gap-5 min-[721px]:flex">
-					<DeskIcon icon="logo" label="About" onOpen={() => openWin("about")} onInfo={showInfo} info={[["Kind", "Software engineer"], ["Where", profile.location], ["Working since", "2024"], ["Version", version]]} />
-					<DeskIcon icon="folder" label="Projects" onOpen={go("projects")} onInfo={showInfo} info={[["Kind", "Folder"], ["Items", String(publicProjects.length)]]} />
-					<DeskIcon icon="briefcase" label="Work" onOpen={go("work")} onInfo={showInfo} info={[["Kind", "Folder"], ["Items", `${experience.length} roles`]]} />
-					<DeskIcon icon="doc" label="Writing" onOpen={go("writing")} onInfo={showInfo} info={[["Kind", "Folder"], ["Items", `${posts.length} posts`]]} />
-					<DeskIcon icon="mail" label="Contact" onOpen={() => openWin("contact")} onInfo={showInfo} info={[["Kind", "Card"], ["Email", profile.email]]} />
+				<div className="saver-fade absolute top-12 right-4 z-[5] hidden flex-col min-[721px]:flex">
+					{mainApps.map((app) => <DeskIcon key={app.label} {...app} onInfo={showInfo} />)}
 				</div>
-				<div className="saver-fade absolute top-12 right-28 z-[5] hidden flex-col gap-5 min-[721px]:flex">
-					<DeskIcon icon="drum" label="Pregame" onOpen={() => openWin("pregame")} onInfo={showInfo} info={app([["Marchers", "128"], ["Tempo", "152 bpm"]])} />
-					<DeskIcon icon="camera" label="Camera" onOpen={takePhoto} onInfo={showInfo} info={app([["Output", "1-bit PNG"], ["Subject", "The wallpaper"]])} />
-					<DeskIcon icon="clock" label="Clock" onOpen={() => openWin("clock")} onInfo={showInfo} info={app([["Time zone", "America/Chicago"]])} />
-					<DeskIcon icon="moon" label="Night Sky" onOpen={toggleNight} onInfo={showInfo} info={app([["Shows", night ? "Real time" : "Night"]])} />
-					<DeskIcon icon="monitor" label="Screensaver" onOpen={startSaver} onInfo={showInfo} info={app([["Starts after", "2 minutes idle"]])} />
+				<div className="saver-fade absolute top-12 right-28 z-[5] hidden flex-col min-[721px]:flex">
+					{extras.map((app) => <DeskIcon key={app.label} {...app} onInfo={showInfo} />)}
 				</div>
 				<div
 					ref={(el) => {
@@ -595,7 +676,7 @@ export function Desktop({ posts, children }: { posts: PostSummary[]; children: R
 					}}
 					className="saver-fade absolute right-4 bottom-4 z-[5] hidden min-[721px]:block"
 				>
-					<DeskIcon icon={trashed.length ? "trashFull" : "trash"} label="Trash" onOpen={() => setTrash(true)} onInfo={showInfo} info={[["Kind", "Trash"], ["Items", String(trashed.length)]]} />
+					<DeskIcon {...trashApp} onInfo={showInfo} />
 				</div>
 				<div key={gen} className="saver-fade max-[720px]:flex max-[720px]:flex-col-reverse">
 					{visible.has("about") && <AboutWin onClose={close("about")} />}

@@ -77,8 +77,10 @@ p, li { text-wrap: pretty; }
 	box-shadow: 3px 3px 0 var(--fg);
 }
 /* Window placement. Phones stack windows; larger screens position them on the desk.
+   Mobile uses opening order so focusing a window during a scroll cannot move it.
    Done in CSS (not JS) so the first paint is already right and nothing jumps. */
 .desk-win {
+	order: var(--stack-order);
 	position: relative;
 	margin: 0 0.75rem 1rem;
 }
@@ -157,27 +159,38 @@ p, li { text-wrap: pretty; }
 
 /* Reading preferences for articles. Body and headings follow the chosen face;
    code always stays monospace. */
-.doc[data-font="sans"] { font-family: var(--font-read-sans); -webkit-font-smoothing: antialiased; }
-.doc[data-font="serif"] { font-family: var(--font-read-serif); -webkit-font-smoothing: antialiased; }
-.doc[data-font="mono"] { font-family: var(--font-mono); }
-.doc[data-font="pixel"] { font-family: var(--font-retro); }
-.doc[data-font="pixel"] :is(h1, h2, h3) { font-family: inherit; }
-.doc[data-font="sans"] :is(h1, h2, h3),
-.doc[data-font="serif"] :is(h1, h2, h3),
-.doc[data-font="mono"] :is(h1, h2, h3) {
+[data-read-font="sans"] .doc { font-family: var(--font-read-sans); -webkit-font-smoothing: antialiased; }
+[data-read-font="serif"] .doc { font-family: var(--font-read-serif); -webkit-font-smoothing: antialiased; }
+[data-read-font="mono"] .doc { font-family: var(--font-mono); }
+[data-read-font="pixel"] .doc { font-family: var(--font-retro); }
+[data-read-font="pixel"] .doc :is(h1, h2, h3) { font-family: inherit; }
+[data-read-font="sans"] .doc :is(h1, h2, h3),
+[data-read-font="serif"] .doc :is(h1, h2, h3),
+[data-read-font="mono"] .doc :is(h1, h2, h3) {
 	font-family: inherit;
 	font-weight: 700;
 	letter-spacing: -0.01em;
 }
-.doc[data-font="serif"] :is(h1, h2, h3) { font-weight: 650; }
-.doc[data-size="s"] { font-size: 15px; }
-.doc[data-size="m"] { font-size: 17px; }
-.doc[data-size="l"] { font-size: 20px; }
-.doc[data-font="serif"], .doc[data-font="sans"] { line-height: 1.7; }
+[data-read-font="serif"] .doc :is(h1, h2, h3) { font-weight: 650; }
+[data-read-size="s"] .doc { font-size: 15px; }
+[data-read-size="m"] .doc { font-size: 17px; }
+[data-read-size="l"] .doc { font-size: 20px; }
+[data-read-font="serif"] .doc, [data-read-font="sans"] .doc { line-height: 1.7; }
 .doc pre, .doc code, .doc kbd, .doc samp { font-family: var(--font-mono); -webkit-font-smoothing: auto; }
 .doc pre { font-size: 13px; }
 .doc :not(pre) > code { font-size: 0.88em; padding: 0 0.25em; border: 1px solid var(--fg); }
 
+
+/* The chosen font and size buttons, styled from <html> so the right ones show on first paint. */
+:is(
+	[data-read-font="sans"] [data-font-opt="sans"],
+	[data-read-font="serif"] [data-font-opt="serif"],
+	[data-read-font="mono"] [data-font-opt="mono"],
+	[data-read-font="pixel"] [data-font-opt="pixel"],
+	[data-read-size="s"] [data-size-opt="s"],
+	[data-read-size="m"] [data-size-opt="m"],
+	[data-read-size="l"] [data-size-opt="l"]
+) { background: var(--fg); color: var(--bg); }
 
 /* pixel icons */
 .px-ink { fill: var(--fg); }
@@ -244,4 +257,89 @@ p, li { text-wrap: pretty; }
 	[data-theme] .titlebar h2::after {
 		animation: none;
 	}
+}
+
+/* The theme disclosure follows the active palette, including the system setting. */
+.theme-moon { display: none; }
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme]) .theme-sun { display: none; }
+	:root:not([data-theme]) .theme-moon { display: inline; }
+}
+:is([data-theme="dark"], [data-theme="phosphor"], [data-theme="amber"], [data-theme="blueprint"]) .theme-sun { display: none; }
+:is([data-theme="dark"], [data-theme="phosphor"], [data-theme="amber"], [data-theme="blueprint"]) .theme-moon { display: inline; }
+
+/* Pixel assets invert with the launcher buttons' selected ink and paper. */
+:is(.toolbar-trigger:hover, .toolbar-trigger[aria-expanded="true"], .app-shortcut:hover, .app-shortcut:focus-visible) .px-ink { fill: var(--bg); }
+:is(.toolbar-trigger:hover, .toolbar-trigger[aria-expanded="true"], .app-shortcut:hover, .app-shortcut:focus-visible) .px-paper { fill: var(--fg); }
+.app-shortcut:is(:hover, :focus-visible) [role="img"] { background: var(--bg); }
+
+/* Full-screen modals start under the menu bar so it stays usable. */
+.modal-under-bar { top: 2rem; }
+@media (max-width: 720px) {
+	.modal-under-bar { top: calc(3rem + env(safe-area-inset-top, 0px)); }
+}
+
+/* Keep iPhone's status area opaque when Safari scrolls the page beneath it. */
+@media (max-width: 720px) {
+	.menu-bar::before {
+		content: "";
+		position: absolute;
+		inset: -120px 0 100%;
+		background: var(--bg);
+		pointer-events: none;
+	}
+	.menu-bar {
+		padding-top: env(safe-area-inset-top, 0px);
+		height: calc(3rem + env(safe-area-inset-top, 0px));
+	}
+	.desktop-surface {
+		padding-top: calc(4rem + env(safe-area-inset-top, 0px));
+	}
+	.mobile-menu {
+		top: calc(3.5rem + env(safe-area-inset-top, 0px));
+		max-height: calc(100dvh - 5rem - env(safe-area-inset-top, 0px));
+	}
+}
+
+/* Resume export. Mounted only while printing; laid out like a classic one-page resume. */
+.resume-print { display: none; }
+@media print {
+	@page { size: letter; margin: 0.5in 0.55in; }
+	html[data-printing="resume"], html[data-printing="resume"] body {
+		background: #fff !important;
+		color: #000 !important;
+		overflow: visible !important;
+	}
+	html[data-printing="resume"] body > :not(.resume-print) { display: none !important; }
+	.resume-print {
+		display: block;
+		font-family: Calibri, Carlito, "Atkinson Hyperlegible", Arial, sans-serif;
+		font-size: 10.5pt;
+		line-height: 1.32;
+		color: #000;
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact;
+	}
+	.resume-print a { color: #000; text-decoration: none; }
+	.resume-print header { text-align: center; margin-bottom: 4pt; }
+	.resume-print h1 { font-size: 17pt; font-weight: 700; letter-spacing: 0; margin: 0; }
+	.resume-print .resume-contact { margin: 2pt 0 0; font-size: 10pt; }
+	.resume-print .resume-contact a { color: #0b4fb3; text-decoration: underline; }
+	.resume-print section { margin-top: 7pt; }
+	.resume-print h2 {
+		font-size: 11.5pt;
+		font-weight: 700;
+		text-transform: uppercase;
+		border-bottom: 1px solid #555;
+		padding-bottom: 1pt;
+		margin: 0 0 3pt;
+		break-after: avoid;
+	}
+	.resume-print .resume-entry { margin: 0 0 4pt 8pt; break-inside: avoid; }
+	.resume-print section > .resume-row { margin-left: 8pt; }
+	.resume-print .resume-row { display: flex; justify-content: space-between; gap: 12pt; }
+	.resume-print .resume-row > span:last-child { white-space: nowrap; }
+	.resume-print ul { list-style: disc; margin: 1pt 0 0; padding-left: 30pt; }
+	.resume-print section > ul { margin-left: 8pt; }
+	.resume-print li { margin: 0.5pt 0; }
 }

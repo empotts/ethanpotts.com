@@ -37,6 +37,39 @@ function render(value: string) {
 	});
 }
 
+/** Front matter every post can set. `date` and `updated` are YYYY-MM-DD. */
+export type PostMeta = {
+	title: string;
+	description?: string;
+	author: string;
+	date?: string;
+	updated?: string;
+	tags: string[];
+	/** Estimated reading time, computed from the body. */
+	minutes: number;
+};
+
+const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
+
+function readMeta(raw: Record<string, unknown>, body: string, slug: string): PostMeta {
+	const text = (k: string) => (typeof raw[k] === "string" && raw[k] ? (raw[k] as string) : undefined);
+	const day = (k: string) => {
+		const v = raw[k] instanceof Date ? (raw[k] as Date).toISOString().slice(0, 10) : text(k);
+		return v && ISO_DAY.test(v) ? v : undefined;
+	};
+	const tags = Array.isArray(raw.tags) ? raw.tags.map(String) : typeof raw.tags === "string" ? raw.tags.split(",").map((t) => t.trim()).filter(Boolean) : [];
+	const words = body.replace(/```[\s\S]*?```/g, " ").split(/\s+/).filter(Boolean).length;
+	return {
+		title: text("title") ?? slug,
+		description: text("description"),
+		author: text("author") ?? "Ethan Potts",
+		date: day("date"),
+		updated: day("updated"),
+		tags,
+		minutes: Math.max(1, Math.round(words / 230)),
+	};
+}
+
 export function markdownToHtml(value: string, filename: string) {
 	// The excerpt marker is an HTML comment the parser would otherwise print as text.
 	const document = parseMarkdown(value.replace(EXCERPT_BOUNDARY, ""));
@@ -46,13 +79,17 @@ export function markdownToHtml(value: string, filename: string) {
 			? value
 			: value.substring(0, excerptBoundaryIndex);
 
+	const slug = filename.split("/").pop()?.replace(/\.md$/, "") ?? filename;
+	const raw = document.frontmatter ? ((parseYaml(document.frontmatter) ?? {}) as Record<string, unknown>) : {};
+	const body = value.replace(/^---[\s\S]*?\n---/, "");
+
 	return {
-		data: document.frontmatter
-			? (parseYaml(document.frontmatter) as Record<string, string>)
-			: {},
+		data: readMeta(raw, body, slug),
+		/** The post body as written, for agents that ask for markdown. */
+		markdown: body.replace(EXCERPT_BOUNDARY, "").trim(),
 		css: markdownThemeCss,
 		html: renderHtml(document, { highlighter: highlightCode }),
 		excerptHtml: render(excerpt),
-		slug: filename.split("/").pop()?.replace(/\.md$/, "") ?? filename,
+		slug,
 	};
 }

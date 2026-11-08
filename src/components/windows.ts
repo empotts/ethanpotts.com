@@ -2,8 +2,9 @@ import { useSyncExternalStore } from "react";
 
 export type WinId = "about" | "projects" | "project" | "work" | "writing" | "contact" | "post" | "pregame" | "photo" | "info" | "clock";
 
-type State = { open: WinId[]; order: WinId[]; gen: number; trashed: WinId[] };
-let state: State = { open: ["about"], order: ["about"], gen: 0, trashed: [] };
+/** `opened` counts openWin calls, so a full-screen page can step aside when a window is asked for. */
+type State = { open: WinId[]; order: WinId[]; gen: number; trashed: WinId[]; opened: number };
+let state: State = { open: ["about"], order: ["about"], gen: 0, trashed: [], opened: 0 };
 const subs = new Set<() => void>();
 const emit = () => {
 	for (const s of subs) s();
@@ -14,6 +15,7 @@ export function openWin(id: WinId) {
 		...state,
 		open: state.open.includes(id) ? state.open : [...state.open, id],
 		order: [...state.order.filter((x) => x !== id), id],
+		opened: state.opened + 1,
 	};
 	emit();
 }
@@ -70,5 +72,5 @@ export const ROUTE_OF: Partial<Record<WinId, string>> = {
 	writing: "/blog",
 };
 
-/** False until the first client render has finished; windows present at load skip their entrance animation. */
+/** False until the visitor first clicks, taps or types; windows present at load skip their entrance animation. */
 export const boot = { hydrated: false };

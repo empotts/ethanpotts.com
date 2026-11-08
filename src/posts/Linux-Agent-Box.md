@@ -1,6 +1,8 @@
 ---
 title: My Linux Box
 description: How I turned a spare laptop into an always-on home for my AI agents, with SSH, T3 Code and OpenBot.
+date: 2026-11-03
+tags: [AI agents, Linux, Homelab]
 ---
 
 I had an old laptop sitting in a drawer. Now it runs my AI agents all day, every day, and I barely touch it. Here's how it's set up and what I learned.

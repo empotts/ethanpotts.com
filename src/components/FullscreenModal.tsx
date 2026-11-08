@@ -3,7 +3,8 @@ import { useEffect, useRef } from "react";
 import { boot } from "./windows";
 
 /**
- * Full-screen retro modal. Covers the desktop with a single window: title bar,
+ * Full-screen retro modal. Covers the desktop (but not the menu bar, which stays
+ * usable above it) with a single window: title bar,
  * close box, scrollable body, optional footer. Closes on Escape. Locks page scroll
  * and returns focus to whatever was focused before it opened.
  *
@@ -15,6 +16,7 @@ export function FullscreenModal({
 	children,
 	footer,
 	toolbar,
+	actions,
 	label,
 }: {
 	title: string;
@@ -23,6 +25,8 @@ export function FullscreenModal({
 	footer?: React.ReactNode;
 	/** Optional row of controls under the title bar. */
 	toolbar?: React.ReactNode;
+	/** Small controls at the right end of the title bar. */
+	actions?: React.ReactNode;
 	/** Accessible name if the visible title is not descriptive enough. */
 	label?: string;
 }) {
@@ -34,7 +38,8 @@ export function FullscreenModal({
 		document.body.style.overflow = "hidden";
 		panel.current?.focus();
 		const onKey = (e: KeyboardEvent) => {
-			if (e.key === "Escape") onClose();
+			// A menu-bar menu handles its own Escape first.
+			if (e.key === "Escape" && !e.defaultPrevented) onClose();
 		};
 		window.addEventListener("keydown", onKey);
 		return () => {
@@ -45,7 +50,7 @@ export function FullscreenModal({
 	}, [onClose]);
 
 	return (
-		<div className="fixed inset-0 z-[300] p-0 sm:p-6 sm:pt-12" role="dialog" aria-modal="true" aria-label={label ?? title}>
+		<div className="modal-under-bar fixed inset-x-0 bottom-0 z-[90] p-0 sm:p-6" role="dialog" aria-modal="true" aria-label={label ?? title}>
 			<motion.div
 				ref={panel}
 				tabIndex={-1}
@@ -63,6 +68,7 @@ export function FullscreenModal({
 					/>
 					<h2 className="mx-auto truncate bg-white px-3 font-ui text-sm leading-none">{title}</h2>
 					<span className="hidden shrink-0 bg-white px-2 font-ui text-xs sm:block">esc to close</span>
+					{actions && <div className="flex shrink-0 items-center bg-white px-1">{actions}</div>}
 				</header>
 				{toolbar && <div className="shrink-0 border-b-2 border-black">{toolbar}</div>}
 				<div className="scroll-retro min-h-0 flex-1 overflow-auto">{children}</div>

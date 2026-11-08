@@ -37,7 +37,7 @@ export function Window({
 }) {
 	const desk = useContext(DeskRef);
 	const controls = useDragControls();
-	const { order } = useWindows();
+	const { open, order } = useWindows();
 	const narrow = useNarrow();
 	const z = order.indexOf(id) + 10;
 	const active = order[order.length - 1] === id;
@@ -68,7 +68,7 @@ export function Window({
 				onClose();
 			}}
 			className="win desk-win flex flex-col"
-			style={{ "--x": `${x}px`, "--y": `${y}px`, "--w": `${width}px`, zIndex: z } as React.CSSProperties}
+			style={{ "--x": `${x}px`, "--y": `${y}px`, "--w": `${width}px`, "--stack-order": open.indexOf(id), zIndex: z } as React.CSSProperties}
 			aria-label={title}
 		>
 			<header

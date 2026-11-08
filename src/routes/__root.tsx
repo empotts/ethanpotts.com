@@ -1,5 +1,6 @@
 import { createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { Desktop } from "@/components/Desktop";
+import { readingBootScript } from "@/components/ReadingControls";
 import { themeBootScript } from "@/components/theme";
 import { profile } from "@/data/profile";
 import { seo } from "@/lib/seo";
@@ -11,7 +12,7 @@ export const Route = createRootRoute({
 	head: () => ({
 		meta: [
 			{ charSet: "utf-8" },
-			{ name: "viewport", content: "width=device-width, initial-scale=1" },
+			{ name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
 			{ name: "author", content: profile.name },
 			{ name: "theme-color", content: "#ffffff" },
 			...seo({}).meta,
@@ -28,7 +29,7 @@ export const Route = createRootRoute({
 			{ rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
 			{ rel: "manifest", href: "/manifest.json" },
 		],
-		scripts: [{ children: themeBootScript }],
+		scripts: [{ children: themeBootScript + readingBootScript }],
 	}),
 	shellComponent: RootDocument,
 });
@@ -36,7 +37,7 @@ export const Route = createRootRoute({
 function RootDocument({ children }: { children: React.ReactNode }) {
 	const posts = Route.useLoaderData({ select: (d) => d?.posts ?? [] });
 	return (
-		<html lang="en" suppressHydrationWarning>
+		<html lang="en" data-read-font="sans" data-read-size="m" suppressHydrationWarning>
 			<head>
 				<HeadContent />
 			</head>

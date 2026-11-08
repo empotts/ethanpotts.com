@@ -1,23 +1,10 @@
 import { notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { markdownToHtml } from "@/lib/markdown";
-
-const modules: Record<string, () => Promise<string>> = import.meta.glob<string>(
-	"./*.md",
-	{
-		import: "default",
-		query: "?raw",
-	},
-);
-
-const posts = await Promise.all(
-	Object.entries(modules).map(async ([filename, module]) =>
-		markdownToHtml(await module(), filename),
-	),
-);
+import type { PostMeta } from "@/lib/markdown";
+import { posts } from "./content";
 
 export interface PostSummary {
-	data: Record<string, string>;
+	data: PostMeta;
 	css: string;
 	html: string;
 	slug: string;
