@@ -1,5 +1,5 @@
 import * as Alchemy from "alchemy";
-import * as Cloudflare from "alchemy/Cloudflare";
+import * as Cloudflare from "@alchemy.run/cloudflare";
 import * as Config from "effect/Config";
 import * as Effect from "effect/Effect";
 
@@ -7,7 +7,7 @@ export const Database = Cloudflare.D1.Database(
 	"Database",
 	Alchemy.Stack.useSync((stack) => ({
 		name: stack.stage === "prod" ? "ethanpotts-db" : undefined,
-		migrationsDir: "./drizzle/migrations",
+		migrations: "./drizzle/migrations",
 	})),
 );
 
@@ -25,9 +25,9 @@ export class Website extends Cloudflare.Website.Vite<Website>()(
 		},
 		env: {
 			DB: Database,
-			BETTER_AUTH_URL: Config.string("BETTER_AUTH_URL"),
-			BETTER_AUTH_SECRET: Config.redacted("BETTER_AUTH_SECRET"),
-			ADMIN_OWNER_EMAIL: Config.redacted("ADMIN_OWNER_EMAIL"),
+			BETTER_AUTH_URL: Config.String("BETTER_AUTH_URL"),
+			BETTER_AUTH_SECRET: Config.Redacted("BETTER_AUTH_SECRET"),
+			ADMIN_OWNER_EMAIL: Config.Redacted("ADMIN_OWNER_EMAIL"),
 		},
 	})),
 ) {}
