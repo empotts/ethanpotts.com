@@ -64,8 +64,11 @@ export function localHour() {
 	return (get("hour") % 24) + get("minute") / 60;
 }
 
-/** Set while the wallpaper is mounted: returns the current frame as a full-size PNG data URL. */
-export const wallpaperShot: { take: (() => string) | null } = { take: null };
+/**
+ * Set while the wallpaper is mounted: `grab(target)` copies the current frame into
+ * `target` at the wallpaper's own pixel size (one pixel per dither dot). The Camera uses it.
+ */
+export const wallpaperShot: { grab: ((target: HTMLCanvasElement) => boolean) | null } = { grab: null };
 
 /**
  * Live switches for the desktop's hidden features. `saver` pans the hills,
@@ -307,16 +310,13 @@ function start2D(canvas: HTMLCanvasElement): (() => void) | undefined {
 		wallpaperMode.shoot = () => {
 			shotAt = performance.now();
 		};
-		wallpaperShot.take = () => {
-			// Scale back up to screen size without smoothing so the print keeps its dither.
-			const out = document.createElement("canvas");
-			out.width = w * PIXEL;
-			out.height = h * PIXEL;
-			const o = out.getContext("2d");
-			if (!o) return canvas.toDataURL("image/png");
-			o.imageSmoothingEnabled = false;
-			o.drawImage(canvas, 0, 0, out.width, out.height);
-			return out.toDataURL("image/png");
+		wallpaperShot.grab = (target) => {
+			target.width = w;
+			target.height = h;
+			const o = target.getContext("2d");
+			if (!o) return false;
+			o.drawImage(canvas, 0, 0);
+			return true;
 		};
 
 		let raf = 0;
@@ -347,7 +347,7 @@ function start2D(canvas: HTMLCanvasElement): (() => void) | undefined {
 		};
 		mq.addEventListener("change", onScheme);
 		return () => {
-			wallpaperShot.take = null;
+			wallpaperShot.grab = null;
 			wallpaperMode.redraw = () => {};
 			wallpaperMode.shoot = () => {};
 			cancelAnimationFrame(raf);

@@ -315,17 +315,15 @@ export function startGL(canvas: HTMLCanvasElement): (() => void) | null {
 	wallpaperMode.shoot = () => {
 		shotAt = performance.now();
 	};
-	wallpaperShot.take = () => {
-		// Draw now and copy in the same task, then scale up without smoothing so the dither survives.
+	wallpaperShot.grab = (target) => {
+		// Draw and copy in the same task: WebGL clears the canvas once the frame is shown.
 		draw(performance.now());
-		const out = document.createElement("canvas");
-		out.width = w * 3;
-		out.height = h * 3;
-		const o = out.getContext("2d");
-		if (!o) return canvas.toDataURL("image/png");
-		o.imageSmoothingEnabled = false;
-		o.drawImage(canvas, 0, 0, out.width, out.height);
-		return out.toDataURL("image/png");
+		target.width = w;
+		target.height = h;
+		const o = target.getContext("2d");
+		if (!o) return false;
+		o.drawImage(canvas, 0, 0);
+		return true;
 	};
 
 	const onPointer = (e: PointerEvent) => {
@@ -358,7 +356,7 @@ export function startGL(canvas: HTMLCanvasElement): (() => void) | null {
 	canvas.addEventListener("webglcontextlost", onLost);
 
 	return () => {
-		wallpaperShot.take = null;
+		wallpaperShot.grab = null;
 		wallpaperMode.redraw = () => {};
 		wallpaperMode.shoot = () => {};
 		cancelAnimationFrame(raf);

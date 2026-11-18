@@ -106,7 +106,8 @@ p, li { text-wrap: pretty; }
 	.desk-win {
 		position: absolute;
 		margin: 0;
-		left: var(--x);
+		/* Never start off the right edge on smaller screens. */
+		left: max(12px, min(var(--x), calc(100vw - var(--w) - 12px)));
 		top: var(--y);
 		width: min(var(--w), calc(100vw - 24px));
 		min-width: min(var(--min-w, 0px), calc(100vw - 24px));
@@ -212,12 +213,6 @@ p, li { text-wrap: pretty; }
 @keyframes pop-in {
 	from { transform: scale(0.85); opacity: 0; }
 	to { transform: none; opacity: 1; }
-}
-/* The Camera icon's shutter: two quick inversions instead of flashing the screen. */
-.shutter svg { animation: shutter 0.16s steps(2, jump-none) 2; }
-@keyframes shutter {
-	from { filter: invert(1); }
-	to { filter: none; }
 }
 /* Desktop icons answer a click with a quick press. */
 .desk-icon:active svg { transform: translateY(1px); }
@@ -690,3 +685,40 @@ p, li { text-wrap: pretty; }
 	.net-packet { display: none; }
 	.draft-wind animate { display: none; }
 }
+
+/* ---------- Camera ---------- */
+.cam-finder { overflow: hidden; }
+.cam-corner { position: absolute; width: 14px; height: 14px; border: 0 solid #fff; mix-blend-mode: difference; }
+.cam-tl { top: 8px; left: 8px; border-top-width: 2px; border-left-width: 2px; }
+.cam-tr { top: 8px; right: 8px; border-top-width: 2px; border-right-width: 2px; }
+.cam-bl { bottom: 8px; left: 8px; border-bottom-width: 2px; border-left-width: 2px; }
+.cam-br { bottom: 8px; right: 8px; border-bottom-width: 2px; border-right-width: 2px; }
+.cam-focus { position: absolute; left: 50%; top: 50%; width: 36px; height: 24px; translate: -50% -50%; border: 2px solid #fff; mix-blend-mode: difference; }
+.cam-warn { position: absolute; left: 8px; bottom: 28px; background: var(--bg); color: var(--fg); font: 11px var(--font-ui); padding: 0 4px; border: 1px solid var(--fg); }
+.cam-warn-r { left: auto; right: 8px; }
+.cam-meter { border: 2px solid var(--fg); padding: 4px 18px 4px; }
+.cam-track { position: relative; height: 30px; }
+.cam-tick { position: absolute; top: 0; translate: -50% 0; font: 11px var(--font-ui); }
+.cam-tick::after { content: ""; position: absolute; left: 50%; top: 16px; width: 2px; height: 6px; translate: -50% 0; background: var(--fg); }
+.cam-needle { position: absolute; top: 14px; width: 4px; height: 14px; translate: -50% 0; background: var(--accent); transition: left 0.15s steps(3, end); }
+.cam-needle[data-ok] { background: var(--fg); box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
+.cam-dial { display: flex; gap: 8px; align-items: center; }
+.cam-dial > div { flex: 1; min-width: 0; }
+.cam-strip { display: grid; grid-template-columns: 1fr 1.3fr 1fr; align-items: center; flex: 1 1 auto; min-width: 0; max-width: 15rem; border: 2px solid var(--fg); font: 12px var(--font-ui); text-align: center; }
+.cam-strip > * { padding: 2px 0; white-space: nowrap; }
+.cam-side { opacity: 0.45; }
+.cam-now { background: var(--fg); color: var(--bg); font-weight: 600; }
+.cam-dial .btn:disabled { opacity: 0.35; }
+.cam-release {
+	flex: none;
+	width: 52px;
+	height: 52px;
+	border-radius: 50%;
+	border: 2px solid var(--fg);
+	background: var(--bg);
+	box-shadow: 2px 2px 0 var(--fg);
+	display: grid;
+	place-items: center;
+}
+.cam-release span { width: 34px; height: 34px; border-radius: 50%; background: var(--accent); border: 2px solid var(--fg); }
+.cam-release:active { translate: 2px 2px; box-shadow: none; }

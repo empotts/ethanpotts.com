@@ -2,7 +2,7 @@ import { Window } from "@/components/Window";
 import { profile } from "@/data/profile";
 import { defineApp } from "../define";
 
-export type Photo = { src: string; taken: Date };
+export type Photo = { src: string; taken: Date; settings?: string; verdict?: string };
 
 function PhotoView({ payload: photo }: { payload: Photo | undefined }) {
 	if (!photo) return null;
@@ -11,12 +11,19 @@ function PhotoView({ payload: photo }: { payload: Photo | undefined }) {
 	return (
 		<Window>
 			<div className="p-3">
-				<img src={photo.src} alt="The desktop wallpaper: dithered Ozark hills" className="block w-full border-2 border-black" style={{ imageRendering: "pixelated" }} />
+				{/* Smooth scaling: shrinking a dither with hard pixels keeps only one phase of it and washes the photo out. */}
+				<img src={photo.src} alt="The desktop wallpaper: dithered Ozark hills" className="block w-full border-2 border-black" />
 				<div className="mt-2 flex items-center justify-between gap-3 text-xs">
 					<span>
 						Rogers, AR · {when}
 						<br />
-						f/8 · 1/250 · ISO 100
+						{photo.settings ?? "f/8 · 1/250 · ISO 100"}
+						{photo.verdict && (
+							<>
+								<br />
+								<span className="font-ui">{photo.verdict}</span>
+							</>
+						)}
 					</span>
 					<a href={photo.src} download={`ozarks-${stamp}.png`} className="btn">
 						Save
@@ -33,6 +40,7 @@ export default defineApp<Photo>({
 	title: "Photo",
 	icon: "camera",
 	place: "hidden",
-	window: { x: 300, y: 120, width: 400, resizable: true, minWidth: 280 },
+	// Opens to the right of the Camera so the two sit side by side.
+	window: { x: 752, y: 90, width: 340, resizable: true, minWidth: 280 },
 	component: PhotoView,
 });

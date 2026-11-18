@@ -1,25 +1,15 @@
-import { wallpaperShot } from "@/components/Wallpaper";
-import { iconRect, openWin } from "@/components/windows";
 import { defineApp } from "../define";
 import { appVersion } from "../version";
 
-/** The camera icon blinks like a shutter (no full-screen flash), then the shot opens in the Photo window. */
-function takePhoto() {
-	const src = wallpaperShot.take?.();
-	if (!src) return;
-	const icon = document.querySelector<HTMLElement>('[data-app-icon="camera"]');
-	icon?.classList.remove("shutter");
-	void icon?.offsetWidth;
-	icon?.classList.add("shutter");
-	setTimeout(() => openWin("photo", { payload: { src, taken: new Date() }, from: iconRect("camera") }), 160);
-}
-
+/** A camera pointed at the wallpaper. It starts badly exposed; set aperture, shutter and ISO to get it right. */
 export default defineApp({
 	id: "camera",
 	title: "Camera",
 	icon: "camera",
 	place: "extras",
 	order: 20,
-	info: () => [["Kind", "Application"], ["Output", "Dithered PNG"], ["Subject", "The wallpaper"], ["Version", appVersion()]],
-	launch: takePhoto,
+	description: "Photograph the wallpaper. Set the aperture, shutter and ISO until the meter reads zero.",
+	window: { x: 240, y: 60, width: 500, minWidth: 340 },
+	info: () => [["Kind", "Application"], ["Controls", "Aperture · Shutter · ISO"], ["Subject", "The wallpaper"], ["Version", appVersion()]],
+	load: () => import("./Camera"),
 });
