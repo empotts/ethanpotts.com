@@ -111,31 +111,77 @@ p, li { text-wrap: pretty; }
 		width: min(var(--w), calc(100vw - 24px));
 		max-height: calc(100vh - 80px);
 	}
-	/* Zoomed: fills the desk under the menu bar, clear of the icon columns. */
-	.desk-win[data-max] {
-		left: 12px;
-		top: 44px;
-		width: calc(100vw - 220px);
-		height: calc(100vh - 60px);
-		max-height: none;
-	}
-	.desk-win[data-max] [data-win-body] { height: auto; }
 }
 /* A window with a set height (or one resized by its grow box). */
 .win-fixed-h { height: var(--h); flex: none; }
 
-/* Title-bar zoom box: a smaller square inside, like the classic one. */
-.zoom-box::before {
-	content: "";
-	position: absolute;
-	left: 1px;
-	top: 1px;
-	width: 6px;
-	height: 6px;
-	border-right: 2px solid var(--fg);
-	border-bottom: 2px solid var(--fg);
+/* Maximized: the whole screen under the menu bar, on phones too. */
+:root { --bar-h: 2rem; }
+@media (max-width: 720px) {
+	:root { --bar-h: calc(3rem + env(safe-area-inset-top, 0px)); }
 }
-.zoom-box:hover::before { border-color: var(--bg); }
+.desk-win[data-max] {
+	position: fixed;
+	inset: var(--bar-h) 0 0 0;
+	width: auto;
+	height: auto;
+	max-height: none;
+	margin: 0;
+	border-width: 0;
+	box-shadow: none;
+	animation: none;
+	translate: none;
+}
+.desk-win[data-max] [data-win-body] { height: auto; flex: 1 1 0; }
+/* A maximized game scales to fit the screen instead of scrolling, centred top to bottom. */
+.desk-win[data-max] .game-wrap { min-height: 100%; display: flex; flex-direction: column; justify-content: center; }
+.desk-win[data-max] .game-stage { width: min(100%, calc((100dvh - var(--bar-h) - 9rem) * 16 / 9)); margin-inline: auto; }
+
+/* Close, minimize, maximize. */
+:root {
+	--tl-close: #ff5f57;
+	--tl-min: #febc2e;
+	--tl-max: #28c840;
+}
+:is([data-theme="phosphor"], [data-theme="amber"], [data-theme="handheld"]) {
+	--tl-close: var(--fg);
+	--tl-min: var(--accent);
+	--tl-max: var(--sky);
+}
+[data-color="off"] { --tl-close: var(--bg); --tl-min: var(--bg); --tl-max: var(--bg); }
+.traffic { gap: 6px; }
+.tl {
+	position: relative;
+	display: grid;
+	place-items: center;
+	width: 13px;
+	height: 13px;
+	border-radius: 50%;
+	border: 1.5px solid var(--fg);
+	background: var(--tl, var(--bg));
+	color: color-mix(in srgb, #000 65%, var(--tl, var(--fg)));
+}
+[data-color="off"] .tl { color: var(--fg); }
+.tl::after { content: ""; position: absolute; inset: -5px -3px; }
+.tl-close { --tl: var(--tl-close); }
+.tl-min { --tl: var(--tl-min); }
+.tl-max { --tl: var(--tl-max); }
+.traffic-dim .tl { --tl: var(--bg); color: var(--fg); }
+.tl svg { width: 7px; height: 7px; opacity: 0; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; }
+.tl svg .fill { fill: currentColor; stroke: none; }
+.traffic:hover .tl svg, .traffic:focus-within .tl svg { opacity: 1; }
+.tl:active { filter: brightness(0.8); }
+@media (pointer: coarse) {
+	.traffic { gap: 10px; }
+	.tl { width: 18px; height: 18px; }
+	.tl svg { width: 9px; height: 9px; opacity: 1; }
+	.tl::after { inset: -8px -5px; }
+}
+
+/* Articles fill the screen under the menu bar. */
+.modal-full { border-width: 0; box-shadow: none; }
+.modal-full:fullscreen { border-width: 0; }
+
 /* Corner grow box: two overlapping squares. */
 .grow-box {
 	background:
@@ -575,4 +621,17 @@ p, li { text-wrap: pretty; }
 @media (prefers-reduced-motion: reduce) {
 	.menu-drop, .pop-in { animation: none; }
 	.md-body img, .scrolly-frame, .scrolly-card { transition: none; }
+}
+
+/* Forecast names the new sky for a moment. */
+.scene-toast {
+	position: fixed;
+	left: 50%;
+	bottom: 1.5rem;
+	translate: -50% 0;
+	z-index: 260;
+	padding: 0.35rem 0.8rem;
+	font-family: var(--font-ui);
+	font-size: 13px;
+	pointer-events: none;
 }

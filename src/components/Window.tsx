@@ -1,6 +1,7 @@
 import { motion, useDragControls, useMotionValue } from "motion/react";
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { AppDef } from "@/apps/define";
+import { TrafficLights } from "./TrafficLights";
 import { boot, focusWin, iconRect, takeOrigin, toggleMaximize, trashTarget, trashWin, useWindows, type WinId } from "./windows";
 import { reducedMotion, zoomRects } from "./zoom";
 
@@ -81,7 +82,7 @@ function DeskWindow({ title: titleProp, children, footer, x: xProp, y: yProp, wi
 	const narrow = useNarrow();
 	const z = order.indexOf(id) + 10;
 	const active = order[order.length - 1] === id;
-	const max = maximized.includes(id) && !narrow;
+	const max = maximized.includes(id);
 	const [trashing, setTrashing] = useState(false);
 	const [closing, setClosing] = useState(false);
 	const [size, setSize] = useState<{ w: number; h?: number }>({ w: w0, h: cfg?.height });
@@ -109,13 +110,24 @@ function DeskWindow({ title: titleProp, children, footer, x: xProp, y: yProp, wi
 		// biome-ignore lint/correctness/useExhaustiveDependencies: runs once as the window mounts
 	}, []);
 
-	// Maximizing snaps the window back from wherever it was dragged.
+	// Maximizing snaps the window back from wherever it was dragged. On phones the
+	// page behind a maximized window stops scrolling.
 	useEffect(() => {
-		if (max) {
-			dx.set(0);
-			dy.set(0);
-		}
-	}, [max, dx, dy]);
+		if (!max) return;
+		dx.set(0);
+		dy.set(0);
+		if (!narrow) return;
+		const root = document.documentElement;
+		const { overflow } = root.style;
+		root.style.overflow = "hidden";
+		return () => {
+			root.style.overflow = overflow;
+		};
+	}, [max, narrow, dx, dy]);
+	const maximize = () => {
+		focusWin(id);
+		toggleMaximize(id);
+	};
 
 	// Closing: the window folds back into its icon (or wherever it came from).
 	const requestClose = () => {
@@ -208,29 +220,11 @@ function DeskWindow({ title: titleProp, children, footer, x: xProp, y: yProp, wi
 		>
 			<header
 				onPointerDown={(e) => !narrow && !max && controls.start(e)}
-				onDoubleClick={() => !narrow && toggleMaximize(id)}
-				className={`flex h-7 shrink-0 cursor-grab items-center gap-2 border-b-2 border-black px-1.5 py-1 select-none active:cursor-grabbing ${active ? "titlebar" : ""}`}
+				onDoubleClick={() => !narrow && maximize()}
+				className={`relative flex h-7 shrink-0 cursor-grab items-center border-b-2 border-black px-2 py-1 select-none active:cursor-grabbing ${active ? "titlebar" : ""} ${max ? "cursor-default" : ""}`}
 			>
-				<button
-					type="button"
-					onPointerDown={(e) => e.stopPropagation()}
-					onClick={requestClose}
-					aria-label={`Close ${title}`}
-					className="relative size-4 shrink-0 border-2 border-black bg-white after:absolute after:-inset-3 after:content-[''] hover:bg-black"
-				/>
-				<h2 className="mx-auto bg-white px-2 font-ui text-sm leading-none">{title}</h2>
-				{narrow ? (
-					<span className="size-4 shrink-0" />
-				) : (
-					<button
-						type="button"
-						onPointerDown={(e) => e.stopPropagation()}
-						onClick={() => toggleMaximize(id)}
-						aria-label={max ? `Restore ${title}` : `Zoom ${title}`}
-						aria-pressed={max}
-						className="zoom-box relative size-4 shrink-0 border-2 border-black bg-white after:absolute after:-inset-2 after:content-[''] hover:bg-black"
-					/>
-				)}
+				<TrafficLights title={title} onClose={requestClose} onMaximize={maximize} maximized={max} dim={!active} />
+				<h2 className="pointer-events-none absolute left-1/2 max-w-[calc(100%-9rem)] -translate-x-1/2 truncate bg-white px-2 font-ui text-sm leading-none">{title}</h2>
 			</header>
 			<div data-win-body className={`scroll-retro min-h-0 flex-1 overflow-auto ${size.h ? "win-fixed-h" : ""}`}>
 				{children}

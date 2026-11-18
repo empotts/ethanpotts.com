@@ -1,5 +1,6 @@
 import { motion, useScroll } from "motion/react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { TrafficLights } from "./TrafficLights";
 import { wallpaperMode } from "./Wallpaper";
 import { boot, recentPress } from "./windows";
 import { reducedMotion, zoomRects } from "./zoom";
@@ -49,6 +50,17 @@ export function FullscreenModal({
 	const origin = useRef<ReturnType<typeof recentPress>>(null);
 	const animateIn = boot.hydrated && !reducedMotion();
 	const [shown, setShown] = useState(!animateIn);
+	const [fullscreen, setFullscreen] = useState(false);
+	useEffect(() => {
+		const on = () => setFullscreen(document.fullscreenElement === panel.current);
+		document.addEventListener("fullscreenchange", on);
+		return () => document.removeEventListener("fullscreenchange", on);
+	}, []);
+	// Maximize here means real full screen, hiding the menu bar too.
+	const toggleFullscreen = () => {
+		if (document.fullscreenElement) void document.exitFullscreen();
+		else void panel.current?.requestFullscreen?.().catch(() => {});
+	};
 	const { scrollYProgress } = useScroll({ container: body });
 
 	// The wallpaper drifts a little as you read.
@@ -103,7 +115,7 @@ export function FullscreenModal({
 
 	return (
 		<div
-			className="modal-under-bar fixed inset-x-0 bottom-0 z-[90] p-0 sm:p-6"
+			className="modal-under-bar fixed inset-x-0 bottom-0 z-[90]"
 			role="dialog"
 			aria-modal="true"
 			aria-label={label ?? title}
@@ -116,15 +128,10 @@ export function FullscreenModal({
 				initial={animateIn ? { opacity: 0 } : false}
 				animate={shown ? { opacity: 1 } : { opacity: 0 }}
 				transition={{ duration: 0.1, ease: (t: number) => Math.ceil(t * 3) / 3 }}
-				className="win flex h-full flex-col text-black outline-none"
+				className="win modal-full flex h-full flex-col text-black outline-none"
 			>
 				<header className="titlebar relative flex h-8 shrink-0 items-center gap-2 border-b-2 border-black px-2">
-					<button
-						type="button"
-						onClick={() => close.current()}
-						aria-label="Close"
-						className="relative size-4 shrink-0 border-2 border-black bg-white after:absolute after:-inset-3 after:content-[''] hover:bg-black"
-					/>
+					<TrafficLights title={label ?? title} onClose={() => close.current()} onMaximize={toggleFullscreen} maximized={fullscreen} />
 					<h2 className="mx-auto truncate bg-white px-3 font-ui text-sm leading-none">{title}</h2>
 					<span className="hidden shrink-0 bg-white px-2 font-ui text-xs sm:block">esc to close</span>
 					{actions && <div className="flex shrink-0 items-center bg-white px-1">{actions}</div>}

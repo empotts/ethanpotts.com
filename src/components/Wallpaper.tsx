@@ -69,16 +69,37 @@ export const wallpaperShot: { take: (() => string) | null } = { take: null };
 
 /**
  * Live switches for the desktop's hidden features. `saver` pans the hills,
- * `night` forces the night sky, `shoot()` sends a shooting star across it.
+ * `scene` picks the sky (Forecast), `shoot()` sends a shooting star across it.
  */
+export const SCENES = [
+	{ id: "live", label: "Live sky" },
+	{ id: "sunrise", label: "Sunrise" },
+	{ id: "golden", label: "Golden hour" },
+	{ id: "night", label: "Night" },
+	{ id: "rain", label: "Rain" },
+	{ id: "snow", label: "Snow" },
+	{ id: "fog", label: "Fog" },
+] as const;
+export type Scene = (typeof SCENES)[number]["id"];
+
 export const wallpaperMode = {
 	saver: false,
+	/** The 2D fallback only knows night; the WebGL wallpaper draws every scene. */
 	night: false,
+	scene: "live" as Scene,
 	/** Reading progress (0–1) of an open article; the hills drift with it. */
 	scroll: 0,
 	redraw: () => {},
 	shoot: () => {},
 };
+
+/** Switches the wallpaper's sky. Arriving at night sends a shooting star across. */
+export function setScene(scene: Scene) {
+	wallpaperMode.scene = scene;
+	wallpaperMode.night = scene === "night";
+	wallpaperMode.redraw();
+	if (scene === "night") setTimeout(() => wallpaperMode.shoot(), 400);
+}
 
 /** The Big Dipper, handle to bowl, in star-spacing units. */
 export const DIPPER: [number, number][] = [
