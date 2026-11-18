@@ -13,10 +13,10 @@ function toast(text: string) {
 	setTimeout(() => el.remove(), 1800);
 }
 
-/** Each launch moves the wallpaper to the next sky: live, sunrise, golden hour, night, rain, snow, fog. */
+/** Each launch picks a different sky at random (never the one showing): live, sunrise, golden hour, night, rain, snow, fog. */
 function nextScene() {
-	const i = SCENES.findIndex((s) => s.id === wallpaperMode.scene);
-	const next = SCENES[(i + 1) % SCENES.length];
+	const others = SCENES.filter((s) => s.id !== wallpaperMode.scene);
+	const next = others[Math.floor(Math.random() * others.length)];
 	setScene(next.id);
 	toast(`Forecast: ${next.label}`);
 }
@@ -27,7 +27,7 @@ export default defineApp({
 	icon: "cloud",
 	place: "extras",
 	order: 40,
-	description: "Changes the wallpaper's sky: the live sky, sunrise, golden hour, night, rain, snow or fog.",
+	description: "Changes the wallpaper to a different sky each time: the live sky, sunrise, golden hour, night, rain, snow or fog.",
 	info: () => [
 		["Kind", "Application"],
 		["Showing", SCENES.find((s) => s.id === wallpaperMode.scene)?.label ?? "Live"],

@@ -33,6 +33,6 @@ export default defineApp<Photo>({
 	title: "Photo",
 	icon: "camera",
 	place: "hidden",
-	window: { x: 300, y: 120, width: 400, resizable: true },
+	window: { x: 300, y: 120, width: 400, resizable: true, minWidth: 280 },
 	component: PhotoView,
 });

@@ -13,7 +13,7 @@ function Projects() {
 				<span>{publicProjects.length} items</span>
 				<span>click twice to open</span>
 			</div>
-			<div className="grid grid-cols-3 gap-y-4 p-4 sm:grid-cols-4">
+			<div className="grid grid-cols-[repeat(auto-fill,minmax(92px,1fr))] gap-x-2 gap-y-4 p-4">
 				{publicProjects.map((p) => {
 					const active = selected === p.slug;
 					const open = (e: React.SyntheticEvent) => openWin("project", { payload: p, from: e.currentTarget });
@@ -27,7 +27,7 @@ function Projects() {
 							className="flex flex-col items-center gap-1 outline-none"
 						>
 							<PixelIcon name={p.href ? "app" : "folder"} size={36} inverted={active} />
-							<span className={`max-w-full px-1 text-center font-ui text-[13px] leading-tight ${active ? "bg-black text-white" : ""}`}>{p.name}</span>
+							<span className={`max-w-full px-1 text-center font-ui text-[13px] leading-tight [overflow-wrap:anywhere] ${active ? "bg-black text-white" : ""}`}>{p.name}</span>
 						</button>
 					);
 				})}
@@ -44,7 +44,7 @@ export default defineApp({
 	order: 2,
 	description: "Apps, games and tools I've built.",
 	route: "/projects",
-	window: { x: 260, y: 70, width: 540, resizable: true },
+	window: { x: 260, y: 70, width: 540, resizable: true, minWidth: 360 },
 	info: () => [["Kind", "Folder"], ["Items", String(publicProjects.length)]],
 	component: Projects,
 });

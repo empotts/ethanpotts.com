@@ -1,7 +1,7 @@
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { Suspense, useEffect, useRef, useState } from "react";
 import type { AppDef } from "@/apps/define";
-import { appBody, apps, appsIn, getApp, hasWindow, routeWin } from "@/apps/index";
+import { appBody, apps, appsIn, getApp, hasWindow, preloadApp, routeWin } from "@/apps/index";
 import type { Info } from "@/apps/info/app";
 import type { PostSummary } from "@/posts/worker";
 import { DesktopDataContext, desktopActions } from "./desktop/data";
@@ -10,7 +10,7 @@ import { type DesktopApp, MenuBar } from "./desktop/MenuBar";
 import { type IconName, PixelIcon } from "./icons";
 import { Logo } from "./Logo";
 import { Wallpaper } from "./Wallpaper";
-import { AppFrameContext, DeskRef, Window } from "./Window";
+import { AppFrameContext, DeskRef } from "./Window";
 import { closeWin, emptyTrash, openWin, trashTarget, useWindows } from "./windows";
 
 /** A desktop icon. Option/Alt + double-click (or Alt+Enter) opens Get Info instead. */
@@ -24,6 +24,8 @@ function DeskIcon({ id, icon, label, onOpen, info }: DesktopApp) {
 			data-desk-icon
 			data-app-icon={id}
 			onClick={() => setSel(true)}
+			onPointerEnter={() => preloadApp(id)}
+			onPointerDown={() => preloadApp(id)}
 			onDoubleClick={(e) => act(e.altKey, e.currentTarget)}
 			onKeyDown={(e) => e.key === "Enter" && act(e.altKey, e.currentTarget)}
 			onFocus={() => setSel(true)}
@@ -48,13 +50,8 @@ function AppWindow({ app, active, payload, onClose }: { app: AppDef; active: boo
 	if (!Body) return null;
 	return (
 		<AppFrameContext.Provider value={{ app, active, embedded: false, close: onClose }}>
-			<Suspense
-				fallback={
-					<Window>
-						<p className="p-5 font-ui text-sm">Opening {app.title}…</p>
-					</Window>
-				}
-			>
+			{/* No placeholder window: the real one zooms open once its code arrives (usually preloaded on hover). */}
+			<Suspense fallback={null}>
 				<Body payload={payload} />
 			</Suspense>
 		</AppFrameContext.Provider>

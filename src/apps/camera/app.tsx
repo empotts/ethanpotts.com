@@ -3,17 +3,15 @@ import { iconRect, openWin } from "@/components/windows";
 import { defineApp } from "../define";
 import { appVersion } from "../version";
 
-/** A one-frame flash, then the shot opens in the Photo window. */
+/** The camera icon blinks like a shutter (no full-screen flash), then the shot opens in the Photo window. */
 function takePhoto() {
 	const src = wallpaperShot.take?.();
 	if (!src) return;
-	const flash = document.createElement("div");
-	flash.className = "pointer-events-none fixed inset-0 z-[300] bg-black";
-	document.body.appendChild(flash);
-	setTimeout(() => {
-		flash.remove();
-		openWin("photo", { payload: { src, taken: new Date() }, from: iconRect("camera") });
-	}, 90);
+	const icon = document.querySelector<HTMLElement>('[data-app-icon="camera"]');
+	icon?.classList.remove("shutter");
+	void icon?.offsetWidth;
+	icon?.classList.add("shutter");
+	setTimeout(() => openWin("photo", { payload: { src, taken: new Date() }, from: iconRect("camera") }), 160);
 }
 
 export default defineApp({

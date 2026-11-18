@@ -109,6 +109,7 @@ p, li { text-wrap: pretty; }
 		left: var(--x);
 		top: var(--y);
 		width: min(var(--w), calc(100vw - 24px));
+		min-width: min(var(--min-w, 0px), calc(100vw - 24px));
 		max-height: calc(100vh - 80px);
 	}
 }
@@ -137,16 +138,11 @@ p, li { text-wrap: pretty; }
 .desk-win[data-max] .game-wrap { min-height: 100%; display: flex; flex-direction: column; justify-content: center; }
 .desk-win[data-max] .game-stage { width: min(100%, calc((100dvh - var(--bar-h) - 9rem) * 16 / 9)); margin-inline: auto; }
 
-/* Close, minimize, maximize. */
+/* Close, minimize, maximize: the theme's own colours, softened toward the paper. */
 :root {
-	--tl-close: #ff5f57;
-	--tl-min: #febc2e;
-	--tl-max: #28c840;
-}
-:is([data-theme="phosphor"], [data-theme="amber"], [data-theme="handheld"]) {
-	--tl-close: var(--fg);
-	--tl-min: var(--accent);
-	--tl-max: var(--sky);
+	--tl-close: color-mix(in oklab, var(--accent) 62%, var(--bg));
+	--tl-min: color-mix(in oklab, var(--sun) 58%, var(--bg));
+	--tl-max: color-mix(in oklab, var(--sky) 75%, var(--bg));
 }
 [data-color="off"] { --tl-close: var(--bg); --tl-min: var(--bg); --tl-max: var(--bg); }
 .traffic { gap: 6px; }
@@ -159,9 +155,8 @@ p, li { text-wrap: pretty; }
 	border-radius: 50%;
 	border: 1.5px solid var(--fg);
 	background: var(--tl, var(--bg));
-	color: color-mix(in srgb, #000 65%, var(--tl, var(--fg)));
+	color: var(--fg);
 }
-[data-color="off"] .tl { color: var(--fg); }
 .tl::after { content: ""; position: absolute; inset: -5px -3px; }
 .tl-close { --tl: var(--tl-close); }
 .tl-min { --tl: var(--tl-min); }
@@ -217,6 +212,12 @@ p, li { text-wrap: pretty; }
 @keyframes pop-in {
 	from { transform: scale(0.85); opacity: 0; }
 	to { transform: none; opacity: 1; }
+}
+/* The Camera icon's shutter: two quick inversions instead of flashing the screen. */
+.shutter svg { animation: shutter 0.16s steps(2, jump-none) 2; }
+@keyframes shutter {
+	from { filter: invert(1); }
+	to { filter: none; }
 }
 /* Desktop icons answer a click with a quick press. */
 .desk-icon:active svg { transform: translateY(1px); }
@@ -634,4 +635,58 @@ p, li { text-wrap: pretty; }
 	font-family: var(--font-ui);
 	font-size: 13px;
 	pointer-events: none;
+}
+
+/* ---------- article figures ---------- */
+.net-diagram { container-type: inline-size; }
+.net-diagram svg { display: block; width: 100%; height: auto; overflow: visible; }
+.net-tall { display: none !important; max-width: 360px; margin-inline: auto; }
+@container (max-width: 520px) {
+	.net-wide { display: none !important; }
+	.net-tall { display: block !important; }
+}
+.net-box { fill: var(--bg); stroke: var(--fg); stroke-width: 2; }
+.net-strong { stroke-width: 3; }
+.net-shadow { fill: var(--fg); }
+.net-title { fill: var(--fg); font: 600 14px var(--font-ui); text-anchor: middle; }
+.net-sub { fill: var(--fg); font: 12px var(--font-ui); text-anchor: middle; }
+.net-label { fill: var(--fg); font: 12px var(--font-ui); text-anchor: middle; }
+.net-label-side { text-anchor: start; transform: translateX(12px); }
+.net-line { stroke: var(--fg); stroke-width: 2; fill: none; }
+.net-tunnel { stroke: var(--accent); stroke-width: 3; stroke-dasharray: 8 5; fill: none; }
+.net-arrow { stroke: var(--accent); stroke-width: 3; fill: none; }
+.net-packet { fill: var(--accent); stroke: var(--bg); stroke-width: 1.5; }
+
+.draft svg, .season svg { display: block; width: 100%; height: auto; }
+.draft-wheel { fill: none; stroke: var(--fg); stroke-width: 2.5; }
+.draft-frame { fill: none; stroke: var(--fg); stroke-width: 2.5; stroke-linejoin: round; }
+.draft-body { stroke: var(--fg); stroke-width: 4; stroke-linecap: square; }
+.draft-helmet { fill: var(--fg); }
+.draft-front .draft-body, .draft-front .draft-helmet { stroke: var(--accent); fill: var(--accent); }
+.draft-wind { stroke: var(--sky); stroke-width: 2; stroke-dasharray: 10 6; }
+.draft-road { stroke: var(--fg); stroke-width: 2; }
+.draft-bar-bg { fill: var(--bg); stroke: var(--fg); stroke-width: 1.5; }
+.draft-bar { fill: var(--fg); }
+.draft-bar-front { fill: var(--accent); }
+.draft-label { fill: var(--fg); font: 12px var(--font-ui); }
+.draft button:disabled { opacity: 0.4; }
+
+.season-month { fill: var(--bg); stroke: var(--fg); stroke-width: 1; }
+.season-alt { fill: color-mix(in srgb, var(--sky) 22%, var(--bg)); }
+.season-label { fill: var(--fg); font: 12px var(--font-ui); }
+.season-small { fill: var(--fg); font: 11px var(--font-ui); }
+.season-tour { stroke: var(--fg); stroke-width: 1.5; }
+.season-tour-label { fill: #111; font: 600 12px var(--font-ui); }
+.season-monument { fill: var(--fg); }
+.season-tick { stroke: var(--fg); stroke-width: 1; stroke-dasharray: 2 2; }
+.season-key-monument { display: inline-block; width: 8px; height: 8px; background: var(--fg); margin-right: 2px; }
+
+.stage-svg { display: block; width: 100%; height: auto; border-bottom: 2px solid var(--fg); }
+.stage-fill { fill: color-mix(in srgb, var(--sky) 55%, var(--bg)); }
+.stage-line { fill: none; stroke: var(--fg); stroke-width: 2; stroke-linejoin: round; }
+.stage-clock { fill: var(--bg); stroke: var(--fg); stroke-width: 2; }
+
+@media (prefers-reduced-motion: reduce) {
+	.net-packet { display: none; }
+	.draft-wind animate { display: none; }
 }

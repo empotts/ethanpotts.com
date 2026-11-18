@@ -28,6 +28,11 @@ export function appBody(a: AppDef): ComponentType<AppProps> | null {
 	return c;
 }
 
+/** Starts downloading a lazy app's code (on hover or first press), so opening it shows one window, not a placeholder first. */
+export function preloadApp(id: string) {
+	void getApp(id)?.load?.().catch(() => {});
+}
+
 /** The window an URL shows: an app's own route, or /apps/<id>. */
 export function routeWin(pathname: string): string | null {
 	if (pathname.startsWith("/blog/")) return "post";

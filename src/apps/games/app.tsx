@@ -1,7 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { PixelIcon } from "@/components/icons";
 import { Window } from "@/components/Window";
-import { appsIn } from "../index";
+import { appsIn, preloadApp } from "../index";
 import { defineApp } from "../define";
 
 function Games() {
@@ -15,12 +15,13 @@ function Games() {
 				<span>{games.length} {games.length === 1 ? "game" : "games"}</span>
 				<span>double-click to play</span>
 			</div>
-			<div className="grid grid-cols-3 gap-y-4 p-4">
+			<div className="grid grid-cols-[repeat(auto-fill,minmax(92px,1fr))] gap-x-2 gap-y-4 p-4">
 				{games.map((g) => (
 					<button
 						key={g.id}
 						type="button"
 						data-desk-icon
+						onPointerEnter={() => preloadApp(g.id)}
 						onDoubleClick={() => play(g.id)}
 						onKeyDown={(e) => e.key === "Enter" && play(g.id)}
 						className="group flex flex-col items-center gap-1 outline-none"
@@ -43,7 +44,7 @@ export default defineApp({
 	place: "extras",
 	order: 5,
 	description: "Small games that run on the desktop.",
-	window: { x: 300, y: 140, width: 320 },
+	window: { x: 300, y: 140, width: 320, minWidth: 260 },
 	info: () => [["Kind", "Folder"], ["Items", String(appsIn("games").length)]],
 	component: Games,
 });

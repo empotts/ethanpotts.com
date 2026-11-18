@@ -28,8 +28,16 @@ function selfClosing(name: string, p: Props) {
 			return `![Before: ${p.alt ?? ""}](${abs(p.before ?? "")})\n\n![After: ${p.alt ?? ""}](${abs(p.after ?? "")})`;
 		case "App":
 			return `[Interactive: ${p.title ?? p.id ?? "app"}](${abs(`/apps/${p.id ?? ""}`)})`;
+		case "InfoCard": {
+			let rows: [string, string][] = [];
+			try {
+				rows = JSON.parse(p.rows ?? "[]");
+			} catch {}
+			return [`**${p.title ?? ""}**`, "", ...rows.map(([k, v]) => `- ${k}: ${v}`)].join("\n");
+		}
 		default:
-			return "";
+			// Custom components describe themselves with `alt` for readers without the page.
+			return p.alt ? `*${p.alt}*` : "";
 	}
 }
 /** Markdown for the opening tag of a component with children; the children stay as written. */
@@ -67,7 +75,7 @@ export function mdxToPost(source: string, filename: string) {
 	const raw = fm ? ((parseYaml(fm[1]) ?? {}) as Record<string, unknown>) : {};
 	const full = mdxToMarkdown(fm ? source.slice(fm[0].length) : source);
 	const cut = full.indexOf(EXCERPT);
-	const markdown = full.replace(EXCERPT, "").trim();
+	const markdown = full.replace(EXCERPT, "").replace(/\n{3,}/g, "\n\n").trim();
 	return {
 		data: readMeta(raw, markdown, slug),
 		markdown,

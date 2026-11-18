@@ -75,6 +75,8 @@ function DeskWindow({ title: titleProp, children, footer, x: xProp, y: yProp, wi
 	const x0 = xProp ?? cfg?.x ?? 120;
 	const y0 = yProp ?? cfg?.y ?? 80;
 	const w0 = wProp ?? cfg?.width ?? 420;
+	/** Narrowest the window may get, so its contents never collide. */
+	const minW = Math.min(w0, cfg?.minWidth ?? 280);
 
 	const desk = useContext(DeskRef);
 	const controls = useDragControls();
@@ -148,12 +150,15 @@ function DeskWindow({ title: titleProp, children, footer, x: xProp, y: yProp, wi
 		const sy = e.clientY;
 		const startW = r.width;
 		const startH = body.getBoundingClientRect().height;
-		const minW = cfg?.minWidth ?? 240;
 		const minH = cfg?.minHeight ?? 120;
+		// Dragging the grow box would otherwise select (and highlight) the window's text.
+		const { userSelect } = document.body.style;
+		document.body.style.userSelect = "none";
 		const move = (ev: PointerEvent) => {
 			setSize({ w: Math.max(minW, startW + ev.clientX - sx), h: Math.max(minH, startH + ev.clientY - sy) });
 		};
 		const up = () => {
+			document.body.style.userSelect = userSelect;
 			window.removeEventListener("pointermove", move);
 			window.removeEventListener("pointerup", up);
 		};
@@ -211,6 +216,7 @@ function DeskWindow({ title: titleProp, children, footer, x: xProp, y: yProp, wi
 					"--x": `${x0}px`,
 					"--y": `${y0}px`,
 					"--w": `${size.w}px`,
+					"--min-w": `${minW}px`,
 					"--h": size.h ? `${size.h}px` : undefined,
 					"--stack-order": open.indexOf(id),
 					zIndex: z,

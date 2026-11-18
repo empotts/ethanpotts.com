@@ -157,10 +157,29 @@ export function Reveal({ children }: { children: React.ReactNode }) {
 	return <div className="reveal">{children}</div>;
 }
 
+/** A Get Info card: a title and label/value rows. */
+export function InfoCard({ title, rows }: { title: string; rows: [string, string][] }) {
+	return (
+		<section className="win not-prose my-6 max-w-sm" aria-label={title}>
+			<header className="titlebar flex h-7 items-center border-b-2 border-black px-1.5">
+				<span className="mx-auto bg-white px-2 font-ui text-sm leading-none">{title}</span>
+			</header>
+			<dl className="space-y-1 p-4 text-sm">
+				{rows.map(([k, v]) => (
+					<div key={k} className="flex gap-3">
+						<dt className="w-24 shrink-0 text-right font-ui">{k}:</dt>
+						<dd>{v}</dd>
+					</div>
+				))}
+			</dl>
+		</section>
+	);
+}
+
 /** Markdown images in .mdx posts develop too. */
 function Img(props: React.ImgHTMLAttributes<HTMLImageElement>) {
 	if (!props.src || typeof props.src !== "string") return <img {...props} alt={props.alt ?? ""} />;
 	return <DitherImage src={props.src} alt={props.alt ?? ""} className="my-6" />;
 }
 
-export const postComponents = { Figure, Callout, Window, Compare, App, Scrolly, Step, Reveal, img: Img };
+export const postComponents = { Figure, Callout, Window, Compare, App, Scrolly, Step, Reveal, InfoCard, img: Img };
