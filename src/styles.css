@@ -665,6 +665,11 @@ p, li { text-wrap: pretty; }
 .draft-bar-front { fill: var(--accent); }
 .draft-label { fill: var(--fg); font: 12px var(--font-ui); }
 .draft button:disabled { opacity: 0.4; }
+.draft-rider { transition: transform 0.7s steps(10, end); }
+.draft-lane { transition: transform 0.2s steps(3, end), opacity 0.2s; }
+.draft-out { opacity: 0.55; }
+.draft-out .draft-effort { visibility: hidden; }
+.draft-bib { font-size: 11px; }
 
 .season-month { fill: var(--bg); stroke: var(--fg); stroke-width: 1; }
 .season-alt { fill: color-mix(in srgb, var(--sky) 22%, var(--bg)); }
@@ -684,6 +689,7 @@ p, li { text-wrap: pretty; }
 @media (prefers-reduced-motion: reduce) {
 	.net-packet { display: none; }
 	.draft-wind animate { display: none; }
+	.draft-rider, .draft-lane { transition: none; }
 }
 
 /* ---------- Camera ---------- */
