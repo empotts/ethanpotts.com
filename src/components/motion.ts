@@ -25,7 +25,8 @@ export const centerOf = (r: Rect | null): Point | null => (r ? { x: r.left + r.w
 
 /* ---------- Dithered sweep ---------- */
 
-const PIX = 2;
+/** CSS pixels per sweep pixel: 2, or coarser on big areas so each frame stays under ~160k pixels. */
+const pixFor = (w: number, h: number) => Math.max(2, Math.ceil(Math.sqrt((w * h) / 160_000)));
 /** Width of the accent-coloured front of the sweep, as a share of the whole. */
 const BAND = 0.05;
 const BAYER4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
@@ -49,6 +50,7 @@ export function ditherSweep(mode: "cover" | "uncover", at: Point | null, colors:
 	const canvas = document.createElement("canvas");
 	canvas.setAttribute("aria-hidden", "true");
 	canvas.className = "sweep-layer";
+	const PIX = pixFor(box.width, box.height);
 	const w = Math.max(1, Math.ceil(box.width / PIX));
 	const h = Math.max(1, Math.ceil(box.height / PIX));
 	canvas.width = w;

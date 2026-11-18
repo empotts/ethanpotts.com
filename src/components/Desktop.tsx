@@ -34,7 +34,7 @@ function DeskIcon({ id, icon, label, onOpen, info }: DesktopApp) {
 		>
 			{icon === "logo" ? (
 				<span className={`flex size-10 items-center justify-center ${sel ? "bg-black" : ""}`}>
-					<Logo size={36} className={sel ? "!bg-white" : ""} />
+					<Logo size={36} className={sel ? "!text-white" : ""} />
 				</span>
 			) : (
 				<PixelIcon name={icon} size={40} inverted={sel} />

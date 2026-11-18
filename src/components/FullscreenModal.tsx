@@ -1,4 +1,3 @@
-import { motion, useScroll } from "motion/react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { TrafficLights } from "./TrafficLights";
 import { wallpaperMode } from "./Wallpaper";
@@ -62,16 +61,34 @@ export function FullscreenModal({
 		if (document.fullscreenElement) void document.exitFullscreen();
 		else void panel.current?.requestFullscreen?.().catch(() => {});
 	};
-	const { scrollYProgress } = useScroll({ container: body });
+	// Nothing of the desk shows while the page is up, so the wallpaper stops drawing.
+	useEffect(() => {
+		if (!shown) return;
+		wallpaperMode.covered = true;
+		return () => {
+			wallpaperMode.covered = false;
+		};
+	}, [shown]);
 
-	// The wallpaper drifts a little as you read.
-	useEffect(() => scrollYProgress.on("change", (v) => (wallpaperMode.scroll = v)), [scrollYProgress]);
-	useEffect(
-		() => () => {
+	// Reading progress: the bar under the title fills as you scroll, and the
+	// wallpaper drifts a little with it. Written straight to the element, no renders.
+	const bar = useRef<HTMLDivElement>(null);
+	useEffect(() => {
+		const el = body.current;
+		if (!el) return;
+		const on = () => {
+			const max = el.scrollHeight - el.clientHeight;
+			const v = max > 0 ? el.scrollTop / max : 0;
+			wallpaperMode.scroll = v;
+			if (bar.current) bar.current.style.transform = `scaleX(${v})`;
+		};
+		on();
+		el.addEventListener("scroll", on, { passive: true });
+		return () => {
+			el.removeEventListener("scroll", on);
 			wallpaperMode.scroll = 0;
-		},
-		[],
-	);
+		};
+	}, []);
 
 	const wrap = useRef<HTMLDivElement>(null);
 	useIsoLayout(() => {
@@ -125,12 +142,11 @@ export function FullscreenModal({
 			data-theme={theme}
 			style={accent ? ({ "--accent": accent } as React.CSSProperties) : undefined}
 		>
-			<motion.div
+			<div
 				ref={panel}
 				tabIndex={-1}
-				initial={animateIn ? { opacity: 0 } : false}
-				animate={shown ? { opacity: 1 } : { opacity: 0 }}
-				transition={{ duration: 0 }}
+				// Hidden under the sweep until it has covered the screen.
+				style={shown ? undefined : { opacity: 0 }}
 				className="win modal-full flex h-full flex-col text-black outline-none"
 			>
 				<header className="titlebar relative flex h-8 shrink-0 items-center gap-2 border-b-2 border-black px-2">
@@ -138,14 +154,14 @@ export function FullscreenModal({
 					<h2 className="mx-auto truncate bg-white px-3 font-ui text-sm leading-none">{title}</h2>
 					<span className="hidden shrink-0 bg-white px-2 font-ui text-xs sm:block">esc to close</span>
 					{actions && <div className="flex shrink-0 items-center bg-white px-1">{actions}</div>}
-					{progress && <motion.div aria-hidden className="read-progress" style={{ scaleX: scrollYProgress }} />}
+					{progress && <div ref={bar} aria-hidden className="read-progress" style={{ transform: "scaleX(0)" }} />}
 				</header>
 				{toolbar && <div className="shrink-0 border-b-2 border-black">{toolbar}</div>}
 				<div ref={body} className="scroll-retro relative min-h-0 flex-1 overflow-auto" data-enter={animateIn && shown ? "" : undefined}>
 					{children}
 				</div>
 				{footer && <div className="shrink-0 border-t-2 border-black">{footer}</div>}
-			</motion.div>
+			</div>
 		</div>
 	);
 }

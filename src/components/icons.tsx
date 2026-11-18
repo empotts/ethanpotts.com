@@ -310,15 +310,36 @@ const ICONS: Record<string, string[]> = {
 
 export type IconName = keyof typeof ICONS;
 
+/**
+ * One path per colour, made of horizontal runs of pixels, instead of a rect per
+ * pixel: the same picture in a fraction of the markup. Built once per icon.
+ */
+const paths = new Map<IconName, { ink: string; paper: string }>();
+function iconPaths(name: IconName) {
+	let p = paths.get(name);
+	if (!p) {
+		const out = { "#": "", o: "" } as Record<string, string>;
+		ICONS[name].forEach((row, y) => {
+			for (let x = 0; x < row.length; ) {
+				const c = row[x];
+				let end = x + 1;
+				while (end < row.length && row[end] === c) end++;
+				if (c !== ".") out[c === "#" ? "#" : "o"] += `M${x} ${y}h${end - x}v1h${x - end}z`;
+				x = end;
+			}
+		});
+		p = { ink: out["#"], paper: out.o };
+		paths.set(name, p);
+	}
+	return p;
+}
+
 export function PixelIcon({ name, size = 32, inverted = false }: { name: IconName; size?: number; inverted?: boolean }) {
-	const rows = ICONS[name];
+	const { ink, paper } = iconPaths(name);
 	return (
 		<svg width={size} height={size} viewBox="0 0 16 16" shapeRendering="crispEdges" aria-hidden className={inverted ? "px-inv" : undefined}>
-			{rows.flatMap((row, y) =>
-				[...row].map((c, x) =>
-					c === "." ? null : <rect key={`${x}-${y}`} x={x} y={y} width="1" height="1" className={c === "#" ? "px-ink" : "px-paper"} />,
-				),
-			)}
+			{paper && <path d={paper} className="px-paper" />}
+			{ink && <path d={ink} className="px-ink" />}
 		</svg>
 	);
 }

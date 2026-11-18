@@ -1,4 +1,17 @@
 @import "tailwindcss";
+/* Fonts are self-hosted (latin, only the weights in use) so text never waits on a
+   third-party stylesheet. Browsers fetch a face only when something uses it. */
+@import "@fontsource/ibm-plex-mono/latin-400.css";
+@import "@fontsource/ibm-plex-mono/latin-400-italic.css";
+@import "@fontsource/ibm-plex-mono/latin-500.css";
+@import "@fontsource/ibm-plex-mono/latin-600.css";
+@import "@fontsource/atkinson-hyperlegible/latin-400.css";
+@import "@fontsource/atkinson-hyperlegible/latin-400-italic.css";
+@import "@fontsource/atkinson-hyperlegible/latin-700.css";
+@import "@fontsource-variable/literata/opsz.css";
+@import "@fontsource-variable/literata/opsz-italic.css";
+@import "@fontsource/pixelify-sans/latin-400.css";
+@import "@fontsource/pixelify-sans/latin-600.css";
 
 @theme {
 	/* Interface text: crisp on any screen. */
@@ -7,7 +20,7 @@
 	--font-retro: "Pixelify Sans", ui-monospace, monospace;
 	--font-mono: "IBM Plex Mono", ui-monospace, monospace;
 	--font-read-sans: "Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif;
-	--font-read-serif: "Literata", Georgia, serif;
+	--font-read-serif: "Literata Variable", Georgia, serif;
 }
 
 /* Every colour in the UI comes from two values: --bg (paper) and --fg (ink).

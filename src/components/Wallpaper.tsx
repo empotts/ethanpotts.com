@@ -92,6 +92,8 @@ export const wallpaperMode = {
 	scene: "live" as Scene,
 	/** Reading progress (0–1) of an open article; the hills drift with it. */
 	scroll: 0,
+	/** True while something (an article) covers the whole desk; drawing pauses. */
+	covered: false,
 	redraw: () => {},
 	shoot: () => {},
 };
@@ -324,7 +326,7 @@ function start2D(canvas: HTMLCanvasElement): (() => void) | undefined {
 		const loop = (t: number) => {
 			raf = requestAnimationFrame(loop);
 			// ~12 fps is plenty for drifting clouds; the screensaver pans a little smoother.
-			if (document.hidden || t - last < (wallpaperMode.saver ? 50 : 80)) return;
+			if (document.hidden || wallpaperMode.covered || t - last < (wallpaperMode.saver ? 50 : 80)) return;
 			last = t;
 			draw(t);
 		};

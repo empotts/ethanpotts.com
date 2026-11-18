@@ -1,3 +1,4 @@
+import plexMono from "@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2?url";
 import { createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { Desktop } from "@/components/Desktop";
 import { readingBootScript } from "@/components/ReadingControls";
@@ -9,6 +10,8 @@ import appCss from "../styles.css?url";
 
 export const Route = createRootRoute({
 	loader: async () => ({ posts: await getPosts() }),
+	// Posts only change on deploy, so moving between pages never refetches them.
+	staleTime: Number.POSITIVE_INFINITY,
 	head: () => ({
 		meta: [
 			{ charSet: "utf-8" },
@@ -18,12 +21,8 @@ export const Route = createRootRoute({
 			...seo({}).meta,
 		],
 		links: [
-			{ rel: "preconnect", href: "https://fonts.googleapis.com" },
-			{ rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-			{
-				rel: "stylesheet",
-				href: "https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,650;1,7..72,400&family=Pixelify+Sans:wght@400;600&display=swap",
-			},
+			// The interface face, fetched alongside the stylesheet instead of after it.
+			{ rel: "preload", href: plexMono, as: "font", type: "font/woff2", crossOrigin: "anonymous" },
 			{ rel: "stylesheet", href: appCss },
 			{ rel: "icon", href: "/EP.ico", sizes: "any" },
 			{ rel: "apple-touch-icon", href: "/apple-touch-icon.png" },

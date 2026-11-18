@@ -1,9 +1,8 @@
-import { animate, motion, useDragControls, useMotionValue } from "motion/react";
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { AppDef } from "@/apps/define";
 import { TrafficLights } from "./TrafficLights";
 import { boot, dropInRow, focusWin, iconRect, takeOrigin, toggleMaximize, trashTarget, trashWin, useSnapLayout, useWindows, type WinId } from "./windows";
-import { centerOf, ditherSweep, EASE_EXIT, EASE_SOFT, originFor, reducedMotion } from "./motion";
+import { centerOf, ditherSweep, originFor, reducedMotion } from "./motion";
 
 export const DeskRef = createContext<React.RefObject<HTMLDivElement | null> | null>(null);
 
@@ -77,7 +76,6 @@ function DeskWindow({ title: titleProp, children, footer, x: xProp, y: yProp, wi
 	const w0 = wProp ?? cfg?.width ?? 420;
 
 	const desk = useContext(DeskRef);
-	const controls = useDragControls();
 	const { open, order, maximized } = useWindows();
 	const narrow = useNarrow();
 	const z = order.indexOf(id) + 10;
@@ -89,10 +87,17 @@ function DeskWindow({ title: titleProp, children, footer, x: xProp, y: yProp, wi
 	const stackIndex = open.includes(id) ? open.indexOf(id) : open.length;
 	const x = slot?.x ?? x0;
 	const y = slot?.y ?? y0;
-	const [trashing, setTrashing] = useState(false);
 	const el = useRef<HTMLElement>(null);
-	const dx = useMotionValue(0);
-	const dy = useMotionValue(0);
+	/** How far the window has been dragged from its place, applied as a transform. */
+	const offset = useRef({ x: 0, y: 0 });
+	const moveTo = (x: number, y: number, glide = false) => {
+		const node = el.current;
+		if (!node) return;
+		offset.current = { x, y };
+		// Gliding eases the drag offset and the snap place together, so the window travels in one smooth line.
+		node.style.transition = glide && !reducedMotion() ? "transform 0.3s var(--ease-soft), left 0.3s var(--ease-soft), top 0.3s var(--ease-soft)" : "";
+		node.style.transform = x || y ? `translate(${x}px, ${y}px)` : "";
+	};
 
 	// Opening: the same dithered sweep as articles, sized to the window. Paper spreads
 	// over its place from whatever opened it, then the window shows under it and
@@ -121,8 +126,7 @@ function DeskWindow({ title: titleProp, children, footer, x: xProp, y: yProp, wi
 	// page behind a maximized window stops scrolling.
 	useEffect(() => {
 		if (!max) return;
-		dx.set(0);
-		dy.set(0);
+		moveTo(0, 0);
 		if (!narrow) return;
 		const root = document.documentElement;
 		const { overflow } = root.style;
@@ -130,7 +134,8 @@ function DeskWindow({ title: titleProp, children, footer, x: xProp, y: yProp, wi
 		return () => {
 			root.style.overflow = overflow;
 		};
-	}, [max, narrow, dx, dy]);
+		// biome-ignore lint/correctness/useExhaustiveDependencies: moveTo only touches the element
+	}, [max, narrow]);
 	const maximize = () => {
 		focusWin(id);
 		toggleMaximize(id);
@@ -144,45 +149,75 @@ function DeskWindow({ title: titleProp, children, footer, x: xProp, y: yProp, wi
 		close();
 	};
 
+	// Dropped on the Trash: shrink and tumble into it, then go.
+	const trash = (bin: DOMRect) => {
+		const node = el.current;
+		if (!node || reducedMotion()) {
+			trashWin(id);
+			close();
+			return;
+		}
+		node.style.transformOrigin = originFor(bin, node.getBoundingClientRect());
+		const from = node.style.transform || "none";
+		const to = `${node.style.transform} scale(0.05) rotate(-24deg)`;
+		const a = node.animate([{ transform: from, opacity: 1 }, { transform: to, opacity: 0 }], { duration: 280, easing: "cubic-bezier(0.4, 0, 1, 1)", fill: "forwards" });
+		a.onfinish = () => {
+			trashWin(id);
+			close();
+		};
+	};
+
+	// Dragging by the title bar, kept inside the desk. Starts after a few pixels so
+	// clicks and double-clicks on the bar still work.
+	const startDrag = (e: React.PointerEvent<HTMLElement>) => {
+		const node = el.current;
+		const area = desk?.current;
+		if (narrow || max || e.button !== 0 || !node || !area || (e.target as Element).closest("button")) return;
+		const bar = e.currentTarget;
+		const sx = e.clientX;
+		const sy = e.clientY;
+		const start = { ...offset.current };
+		const win = node.getBoundingClientRect();
+		const box = area.getBoundingClientRect();
+		const lo = { x: start.x + box.left - win.left, y: start.y + box.top - win.top };
+		const hi = { x: start.x + box.right - win.right, y: start.y + box.bottom - win.bottom };
+		const clamp = (v: number, a: number, b: number) => (a > b ? v : Math.min(b, Math.max(a, v)));
+		let moving = false;
+		const move = (ev: PointerEvent) => {
+			const mx = ev.clientX - sx;
+			const my = ev.clientY - sy;
+			if (!moving) {
+				if (Math.abs(mx) + Math.abs(my) < 4) return;
+				moving = true;
+				bar.setPointerCapture(ev.pointerId);
+				document.body.style.userSelect = "none";
+			}
+			moveTo(clamp(start.x + mx, lo.x, hi.x), clamp(start.y + my, lo.y, hi.y));
+		};
+		const up = (ev: PointerEvent) => {
+			window.removeEventListener("pointermove", move);
+			window.removeEventListener("pointerup", up);
+			window.removeEventListener("pointercancel", up);
+			if (!moving) return;
+			document.body.style.userSelect = "";
+			const bin = trashTarget.el?.getBoundingClientRect();
+			if (bin && ev.clientX >= bin.left && ev.clientX <= bin.right && ev.clientY >= bin.top && ev.clientY <= bin.bottom) return trash(bin);
+			// In snap view a dropped window takes its new place in the row and glides into it.
+			if (slot) {
+				const r = node.getBoundingClientRect();
+				dropInRow(id, r.left + r.width / 2);
+				moveTo(0, 0, true);
+			}
+		};
+		window.addEventListener("pointermove", move);
+		window.addEventListener("pointerup", up);
+		window.addEventListener("pointercancel", up);
+	};
+
 	return (
-		<motion.section
+		<section
 			ref={el}
-			drag={!narrow && !max}
-			dragControls={controls}
-			dragListener={false}
-			dragMomentum={false}
-			dragElastic={0}
-			dragConstraints={desk ?? undefined}
 			onPointerDown={() => focusWin(id)}
-			onDragEnd={(_, info) => {
-				const r = trashTarget.el?.getBoundingClientRect();
-				const px = info.point.x - window.scrollX;
-				const py = info.point.y - window.scrollY;
-				if (r && px >= r.left && px <= r.right && py >= r.top && py <= r.bottom) {
-					// Shrink and tumble into the Trash.
-					const node = el.current;
-					if (node) node.style.transformOrigin = originFor(r, node.getBoundingClientRect());
-					setTrashing(true);
-					return;
-				}
-				// In snap view a dropped window takes its new place in the row and glides into it.
-				if (slot) {
-					const box = el.current?.getBoundingClientRect();
-					if (box) dropInRow(id, box.left + box.width / 2);
-					const glide = { duration: 0.3, ease: EASE_SOFT };
-					animate(dx, 0, glide);
-					animate(dy, 0, glide);
-				}
-			}}
-			initial={false}
-			animate={trashing ? { scale: 0.05, opacity: 0, rotate: -24 } : { scale: 1, opacity: 1 }}
-			transition={{ duration: 0.28, ease: EASE_EXIT }}
-			onAnimationComplete={() => {
-				if (trashing) {
-					trashWin(id);
-					close();
-				}
-			}}
 			className="win desk-win flex flex-col"
 			data-max={max ? "" : undefined}
 			// Windows already there on first load rise in with CSS instead.
@@ -191,8 +226,6 @@ function DeskWindow({ title: titleProp, children, footer, x: xProp, y: yProp, wi
 			data-glide={slot && boot.hydrated ? "" : undefined}
 			style={
 				{
-					x: dx,
-					y: dy,
 					"--x": `${x}px`,
 					"--y": `${y}px`,
 					"--w": `${w0}px`,
@@ -201,12 +234,12 @@ function DeskWindow({ title: titleProp, children, footer, x: xProp, y: yProp, wi
 					zIndex: z,
 					// Hidden (but laid out) while the sweep fills its place.
 					visibility: shown ? undefined : "hidden",
-				} as unknown as React.CSSProperties
+				} as React.CSSProperties
 			}
 			aria-label={title}
 		>
 			<header
-				onPointerDown={(e) => !narrow && !max && controls.start(e)}
+				onPointerDown={startDrag}
 				onDoubleClick={() => !narrow && maximize()}
 				className={`relative flex h-7 shrink-0 cursor-grab items-center border-b-2 border-black px-2 py-1 select-none active:cursor-grabbing ${active ? "titlebar" : ""} ${max ? "cursor-default" : ""}`}
 			>
@@ -217,6 +250,6 @@ function DeskWindow({ title: titleProp, children, footer, x: xProp, y: yProp, wi
 				{children}
 			</div>
 			{footer && <div className="shrink-0 border-t-2 border-black">{footer}</div>}
-		</motion.section>
+		</section>
 	);
 }

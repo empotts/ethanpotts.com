@@ -330,11 +330,15 @@ export function startGL(canvas: HTMLCanvasElement): (() => void) | null {
 	wallpaperShot.grab = (target) => {
 		// Draw and copy in the same task: WebGL clears the canvas once the frame is shown.
 		draw(performance.now());
-		target.width = w;
-		target.height = h;
+		// Copied at scene resolution (half the dither's on most screens): plenty for the
+		// Camera's viewfinder and a quarter of the pixels to process. Nearest-pixel
+		// sampling keeps it dithered.
+		target.width = Math.round((w * px) / SCENE);
+		target.height = Math.round((h * px) / SCENE);
 		const o = target.getContext("2d");
 		if (!o) return false;
-		o.drawImage(canvas, 0, 0);
+		o.imageSmoothingEnabled = false;
+		o.drawImage(canvas, 0, 0, target.width, target.height);
 		return true;
 	};
 
@@ -349,7 +353,7 @@ export function startGL(canvas: HTMLCanvasElement): (() => void) | null {
 	let last = 0;
 	const loop = (t: number) => {
 		raf = requestAnimationFrame(loop);
-		if (document.hidden || t - last < 42) return;
+		if (document.hidden || wallpaperMode.covered || t - last < 42) return;
 		last = t;
 		draw(t);
 	};
