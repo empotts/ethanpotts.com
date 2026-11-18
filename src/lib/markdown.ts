@@ -31,7 +31,7 @@ export const markdownThemeCss = createThemeCss({
 	lineNumbersSelector: ".tm-code--line-numbers",
 });
 
-function render(value: string) {
+export function render(value: string) {
 	return renderHtml(parseMarkdown(value), {
 		highlighter: highlightCode,
 	});
@@ -47,11 +47,19 @@ export type PostMeta = {
 	tags: string[];
 	/** Estimated reading time, computed from the body. */
 	minutes: number;
+	/** Hidden on the live site; shown in dev and on preview deploys. */
+	draft: boolean;
+	/** `wide` gives a broader column; `custom` drops the standard header so the post lays itself out. */
+	layout: "default" | "wide" | "custom";
+	/** Overrides the theme's accent colour inside this post. */
+	accent?: string;
+	/** Shows this post in one theme regardless of the visitor's choice (e.g. "razorback"). */
+	theme?: string;
 };
 
 const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
 
-function readMeta(raw: Record<string, unknown>, body: string, slug: string): PostMeta {
+export function readMeta(raw: Record<string, unknown>, body: string, slug: string): PostMeta {
 	const text = (k: string) => (typeof raw[k] === "string" && raw[k] ? (raw[k] as string) : undefined);
 	const day = (k: string) => {
 		const v = raw[k] instanceof Date ? (raw[k] as Date).toISOString().slice(0, 10) : text(k);
@@ -67,6 +75,10 @@ function readMeta(raw: Record<string, unknown>, body: string, slug: string): Pos
 		updated: day("updated"),
 		tags,
 		minutes: Math.max(1, Math.round(words / 230)),
+		draft: raw.draft === true,
+		layout: raw.layout === "wide" || raw.layout === "custom" ? raw.layout : "default",
+		accent: text("accent"),
+		theme: text("theme"),
 	};
 }
 
@@ -91,5 +103,6 @@ export function markdownToHtml(value: string, filename: string) {
 		html: renderHtml(document, { highlighter: highlightCode }),
 		excerptHtml: render(excerpt),
 		slug,
+		kind: "md" as const,
 	};
 }

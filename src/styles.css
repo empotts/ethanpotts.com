@@ -11,30 +11,48 @@
 }
 
 /* Every colour in the UI comes from two values: --bg (paper) and --fg (ink).
-   Tailwind's black/white utilities are remapped to them, so themes swap everything. */
+   Tailwind's black/white utilities are remapped to them, so themes swap everything.
+   Each theme also has a small colour set used sparingly: --accent (active title
+   bars, links, progress), --sky (wallpaper sky, distant hills) and --sun.
+   "Color accents" off (data-color="off") folds all three back into the ink. */
 @theme inline {
 	--color-black: var(--fg);
 	--color-white: var(--bg);
+	--color-accent: var(--accent);
 }
 
 :root,
 [data-theme="classic"] {
 	--bg: #ffffff;
 	--fg: #000000;
+	--accent: #2b50d8;
+	--sky: #9fc2ff;
+	--sun: #ffa400;
 }
 @media (prefers-color-scheme: dark) {
 	:root:not([data-theme]) {
 		--bg: #0b0b0b;
 		--fg: #ececec;
+		--accent: #8ca8ff;
+		--sky: #23366e;
+		--sun: #ffc94d;
 	}
 }
-[data-theme="dark"] { --bg: #0b0b0b; --fg: #ececec; }
-[data-theme="phosphor"] { --bg: #041206; --fg: #3dff6e; }
-[data-theme="amber"] { --bg: #140b00; --fg: #ffb22e; }
-[data-theme="blueprint"] { --bg: #0c2d6b; --fg: #e6efff; }
-[data-theme="handheld"] { --bg: #9bbc0f; --fg: #0f380f; }
-[data-theme="paper"] { --bg: #f2ead8; --fg: #3b2f22; }
-[data-theme="razorback"] { --bg: #ffffff; --fg: #9d2235; }
+[data-theme="dark"] { --bg: #0b0b0b; --fg: #ececec; --accent: #8ca8ff; --sky: #23366e; --sun: #ffc94d; }
+[data-theme="phosphor"] { --bg: #041206; --fg: #3dff6e; --accent: #c4ff5c; --sky: #0d4a1c; --sun: #c4ff5c; }
+[data-theme="amber"] { --bg: #140b00; --fg: #ffb22e; --accent: #ffe39a; --sky: #5a2e00; --sun: #fff1c2; }
+[data-theme="blueprint"] { --bg: #0c2d6b; --fg: #e6efff; --accent: #ffd23f; --sky: #2357b5; --sun: #ffd23f; }
+[data-theme="handheld"] { --bg: #9bbc0f; --fg: #0f380f; --accent: #306230; --sky: #8bac0f; --sun: #306230; }
+[data-theme="paper"] { --bg: #f2ead8; --fg: #3b2f22; --accent: #b5482f; --sky: #c9b48a; --sun: #c2562e; }
+[data-theme="razorback"] { --bg: #ffffff; --fg: #9d2235; --accent: #c8102e; --sky: #f1c8ce; --sun: #9d2235; }
+[data-color="off"],
+[data-color="off"] [data-theme] {
+	--accent: var(--fg);
+	--sky: var(--fg);
+	--sun: var(--fg);
+}
+/* A subtree with its own theme (an article, a menu swatch) also takes its colours. */
+[data-theme] { color: var(--fg); }
 
 html {
 	background: var(--bg);
@@ -90,9 +108,79 @@ p, li { text-wrap: pretty; }
 		margin: 0;
 		left: var(--x);
 		top: var(--y);
-		width: var(--w);
+		width: min(var(--w), calc(100vw - 24px));
 		max-height: calc(100vh - 80px);
 	}
+	/* Zoomed: fills the desk under the menu bar, clear of the icon columns. */
+	.desk-win[data-max] {
+		left: 12px;
+		top: 44px;
+		width: calc(100vw - 220px);
+		height: calc(100vh - 60px);
+		max-height: none;
+	}
+	.desk-win[data-max] [data-win-body] { height: auto; }
+}
+/* A window with a set height (or one resized by its grow box). */
+.win-fixed-h { height: var(--h); flex: none; }
+
+/* Title-bar zoom box: a smaller square inside, like the classic one. */
+.zoom-box::before {
+	content: "";
+	position: absolute;
+	left: 1px;
+	top: 1px;
+	width: 6px;
+	height: 6px;
+	border-right: 2px solid var(--fg);
+	border-bottom: 2px solid var(--fg);
+}
+.zoom-box:hover::before { border-color: var(--bg); }
+/* Corner grow box: two overlapping squares. */
+.grow-box {
+	background:
+		linear-gradient(var(--fg), var(--fg)) right 3px bottom 3px / 7px 2px no-repeat,
+		linear-gradient(var(--fg), var(--fg)) right 3px bottom 3px / 2px 7px no-repeat,
+		linear-gradient(var(--fg), var(--fg)) right 7px bottom 7px / 5px 2px no-repeat,
+		linear-gradient(var(--fg), var(--fg)) right 7px bottom 7px / 2px 5px no-repeat;
+}
+
+/* Opening and closing: outlines that step between the icon and the window. */
+.zoom-layer {
+	position: fixed;
+	inset: 0;
+	z-index: 250;
+	pointer-events: none;
+}
+.zoom-rect {
+	position: absolute;
+	left: 0;
+	top: 0;
+	border: 2px solid var(--accent);
+	outline: 1px solid var(--bg);
+	display: none;
+}
+
+/* Menus drop open and dialogs pop in, both in hard steps. */
+.menu-drop { animation: menu-drop 0.12s steps(4, end) both; }
+@keyframes menu-drop {
+	from { clip-path: inset(0 0 100% 0); }
+	to { clip-path: inset(-2px -8px -8px -2px); }
+}
+.pop-in { animation: pop-in 0.14s steps(3, end) both; }
+@keyframes pop-in {
+	from { transform: scale(0.85); opacity: 0; }
+	to { transform: none; opacity: 1; }
+}
+/* Desktop icons answer a click with a quick press. */
+.desk-icon:active svg { transform: translateY(1px); }
+
+/* The theme menu's colour chips. */
+.swatch {
+	display: inline-block;
+	width: 8px;
+	height: 12px;
+	border: 1px solid var(--fg);
 }
 
 /* The wallpaper fades in once its first frame is drawn instead of popping. */
@@ -105,7 +193,7 @@ p, li { text-wrap: pretty; }
 }
 
 .titlebar {
-	background-image: repeating-linear-gradient(var(--fg) 0 1px, var(--bg) 1px 3px);
+	background-image: repeating-linear-gradient(var(--accent) 0 1px, var(--bg) 1px 3px);
 	box-shadow: inset 0 4px 0 var(--bg), inset 0 -3px 0 var(--bg), inset 4px 0 0 var(--bg), inset -4px 0 0 var(--bg);
 }
 .btn {
@@ -147,12 +235,19 @@ p, li { text-wrap: pretty; }
 .doc p, .doc ul, .doc ol { margin: 0.9rem 0; }
 .doc ul { list-style: square; padding-left: 1.3rem; }
 .doc ol { list-style: decimal; padding-left: 1.3rem; }
-.doc a { text-decoration: underline; text-underline-offset: 2px; }
+.doc a { text-decoration: underline; text-decoration-color: var(--accent); text-decoration-thickness: 2px; text-underline-offset: 3px; }
 .doc a:hover { background: var(--fg); color: var(--bg); }
 .doc pre { font-size: 13px; padding: 0.8rem; overflow: auto; margin: 1.2rem 0; border: 2px solid var(--fg); }
 .doc code { font-size: 0.92em; }
 .doc blockquote { border-left: 4px solid var(--fg); padding-left: 0.9rem; }
-.doc img { max-width: 100%; height: auto; filter: grayscale(1) contrast(1.2); border: 2px solid var(--fg); }
+.doc img { max-width: 100%; height: auto; border: 2px solid var(--fg); }
+.dither-img img, .scrolly img, .doc .not-prose img { border: 0; }
+/* Markdown-post images start in one-bit grey and develop to colour in steps. */
+.md-body img {
+	filter: grayscale(1) contrast(1.6) brightness(1.05);
+	transition: filter 0.8s steps(4, end);
+}
+.md-body img[data-developed] { filter: none; }
 .doc table { display: block; overflow: auto; }
 .doc th, .doc td { border: 1px solid var(--fg); padding: 0.2rem 0.5rem; }
 .doc figure figcaption { font-size: 12px; }
@@ -342,4 +437,142 @@ p, li { text-wrap: pretty; }
 	.resume-print ul { list-style: disc; margin: 1pt 0 0; padding-left: 30pt; }
 	.resume-print section > ul { margin-left: 8pt; }
 	.resume-print li { margin: 0.5pt 0; }
+}
+
+/* ---------- articles: motion and components ---------- */
+
+/* Reading progress, under the article's title bar. */
+.read-progress {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: -2px;
+	height: 3px;
+	background: var(--accent);
+	transform-origin: 0 50%;
+}
+
+/* Dithered images: canvases over the photo, lifted away stage by stage. */
+.dither-layer {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	image-rendering: pixelated;
+	transition: opacity 0.01s;
+}
+.dither-img[data-stage="1"] .dither-one,
+.dither-img[data-stage="2"] .dither-one,
+.dither-img[data-stage="2"] .dither-two { opacity: 0; }
+
+.callout {
+	border-left: 8px solid var(--accent);
+	box-shadow: 3px 3px 0 var(--fg);
+}
+.callout-body > :first-child { margin-top: 0.4rem; }
+.callout-body > :last-child { margin-bottom: 0; }
+
+/* Scrollytelling: the picture is pinned while the cards scroll by. */
+.scrolly { display: grid; gap: 1.5rem; }
+/* Wider than the reading column on big screens so the picture has room. */
+@media (min-width: 900px) {
+	.scrolly { width: min(calc(100vw - 8rem), 1040px); position: relative; left: 50%; translate: -50% 0; }
+}
+.scrolly-graphic { position: sticky; top: 0.75rem; z-index: 1; align-self: start; }
+.scrolly-steps { display: grid; gap: 45vh; padding: 20vh 0 30vh; }
+.scrolly-card { opacity: 0.45; transition: opacity 0.2s steps(2, end); }
+.scrolly-card[data-on] { opacity: 1; }
+.scrolly-card > :first-child { margin-top: 0; }
+.scrolly-card > :last-child { margin-bottom: 0; }
+.scrolly-frame { opacity: 0; transition: opacity 0.3s steps(4, end); }
+.scrolly-frame[data-on] { opacity: 1; }
+@media (min-width: 900px) {
+	.scrolly { grid-template-columns: 1.2fr 1fr; align-items: start; }
+	.scrolly-graphic { top: 2rem; }
+}
+
+.retro-range {
+	appearance: none;
+	height: 18px;
+	background: linear-gradient(var(--fg), var(--fg)) center / 100% 2px no-repeat;
+}
+.retro-range::-webkit-slider-thumb {
+	appearance: none;
+	width: 14px;
+	height: 18px;
+	background: var(--bg);
+	border: 2px solid var(--fg);
+	box-shadow: 2px 2px 0 var(--fg);
+}
+.retro-range::-moz-range-thumb {
+	width: 10px;
+	height: 14px;
+	border-radius: 0;
+	background: var(--bg);
+	border: 2px solid var(--fg);
+}
+
+.game-stage { outline: 2px solid var(--fg); }
+.game-wrap:focus-visible .game-stage { outline-color: var(--accent); outline-width: 3px; }
+:fullscreen.game-wrap { display: flex; flex-direction: column; justify-content: center; }
+:fullscreen.game-wrap .game-stage { max-height: 90vh; margin: 0 auto; width: min(100%, calc(90vh * 16 / 9)); }
+
+/* Scroll-driven touches, where the browser supports them and motion is welcome. */
+@supports (animation-timeline: view()) {
+	@media (prefers-reduced-motion: no-preference) {
+		/* Section headings wipe in, left to right, as they scroll up. */
+		.doc h2 {
+			animation: wipe-in steps(6, end) both;
+			animation-timeline: view();
+			animation-range: entry 0% entry 70%;
+		}
+		.reveal {
+			animation: rise-in steps(5, end) both;
+			animation-timeline: view();
+			animation-range: entry 0% entry 60%;
+		}
+		/* On phones the windows stack; each slides up as it comes into view. */
+		@media (max-width: 720px) {
+			.desk-win {
+				animation: slide-up steps(4, end) both;
+				animation-timeline: view();
+				animation-range: entry 0% entry 35%;
+			}
+		}
+	}
+}
+@keyframes wipe-in {
+	from { clip-path: inset(0 100% 0 0); }
+	to { clip-path: inset(0 -1em 0 0); }
+}
+/* `translate` rather than `transform`, so it never fights the window's own open animation. */
+@keyframes slide-up {
+	from { translate: 0 28px; }
+	to { translate: 0 0; }
+}
+@keyframes rise-in {
+	from { transform: translateY(24px); opacity: 0; }
+	to { transform: none; opacity: 1; }
+}
+
+/* ---------- CRT glass (Theme menu) ---------- */
+[data-crt] body::before {
+	content: "";
+	position: fixed;
+	inset: 0;
+	z-index: 401;
+	pointer-events: none;
+	background:
+		radial-gradient(ellipse at center, transparent 58%, color-mix(in srgb, #000 38%, transparent) 100%),
+		repeating-linear-gradient(transparent 0 2px, color-mix(in srgb, #000 14%, transparent) 2px 3px);
+	mix-blend-mode: multiply;
+}
+[data-crt] body {
+	text-shadow: 0 0 3px color-mix(in srgb, var(--fg) 40%, transparent), 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+[data-crt] .wallpaper { filter: saturate(1.15) blur(0.3px); }
+
+@media (prefers-reduced-motion: reduce) {
+	.menu-drop, .pop-in { animation: none; }
+	.md-body img, .scrolly-frame, .scrolly-card { transition: none; }
 }

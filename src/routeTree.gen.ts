@@ -16,6 +16,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as ResumeRouteImport } from './routes/resume'
 import { Route as PrivatePrivateRouteImport } from './routes/_private/private'
+import { Route as AppsIdRouteImport } from './routes/apps.$id'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -54,6 +55,11 @@ const PrivatePrivateRoute = PrivatePrivateRouteImport.update({
   path: '/private',
   getParentRoute: () => PrivateRoute,
 } as any)
+const AppsIdRoute = AppsIdRouteImport.update({
+  id: '/apps/$id',
+  path: '/apps/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
   id: '/blog/',
   path: '/blog/',
@@ -77,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/projects': typeof ProjectsRoute
   '/resume': typeof ResumeRoute
   '/private': typeof PrivatePrivateRoute
+  '/apps/$id': typeof AppsIdRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/': typeof BlogIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -88,6 +95,7 @@ export interface FileRoutesByTo {
   '/projects': typeof ProjectsRoute
   '/resume': typeof ResumeRoute
   '/private': typeof PrivatePrivateRoute
+  '/apps/$id': typeof AppsIdRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog': typeof BlogIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -101,6 +109,7 @@ export interface FileRoutesById {
   '/projects': typeof ProjectsRoute
   '/resume': typeof ResumeRoute
   '/_private/private': typeof PrivatePrivateRoute
+  '/apps/$id': typeof AppsIdRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/': typeof BlogIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -114,6 +123,7 @@ export interface FileRouteTypes {
     | '/projects'
     | '/resume'
     | '/private'
+    | '/apps/$id'
     | '/blog/$slug'
     | '/blog/'
     | '/api/auth/$'
@@ -125,6 +135,7 @@ export interface FileRouteTypes {
     | '/projects'
     | '/resume'
     | '/private'
+    | '/apps/$id'
     | '/blog/$slug'
     | '/blog'
     | '/api/auth/$'
@@ -137,6 +148,7 @@ export interface FileRouteTypes {
     | '/projects'
     | '/resume'
     | '/_private/private'
+    | '/apps/$id'
     | '/blog/$slug'
     | '/blog/'
     | '/api/auth/$'
@@ -149,6 +161,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ProjectsRoute: typeof ProjectsRoute
   ResumeRoute: typeof ResumeRoute
+  AppsIdRoute: typeof AppsIdRoute
   BlogSlugRoute: typeof BlogSlugRoute
   BlogIndexRoute: typeof BlogIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -205,6 +218,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivatePrivateRouteImport
       parentRoute: typeof PrivateRoute
     }
+    '/apps/$id': {
+      id: '/apps/$id'
+      path: '/apps/$id'
+      fullPath: '/apps/$id'
+      preLoaderRoute: typeof AppsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/blog/': {
       id: '/blog/'
       path: '/blog'
@@ -247,6 +267,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ProjectsRoute: ProjectsRoute,
   ResumeRoute: ResumeRoute,
+  AppsIdRoute: AppsIdRoute,
   BlogSlugRoute: BlogSlugRoute,
   BlogIndexRoute: BlogIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,

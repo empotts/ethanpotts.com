@@ -34,6 +34,30 @@ pnpm check
 pnpm deploy
 ```
 
+## Extending the desktop
+
+**Apps and games.** Every window is an app in `src/apps/<id>/app.tsx` that
+default-exports `defineApp({...})` (title, icon, where its icon sits, window
+size, Get Info rows, and either `component` or a lazy `load`). The registry in
+`src/apps/index.ts` picks up new folders on its own; each app also opens at
+`/apps/<id>`. Apps with `place: "games"` appear in the Games folder.
+`src/kit/game` has the pieces for a game: a fixed-step loop, input that only
+listens while the window is in front, the theme palette for canvases, a crisp
+pixel canvas, beeps and a personal best. `src/apps/singletrack` uses all of it.
+
+**Articles.** Posts in `src/posts` can be `.md` or `.mdx`. MDX posts can use
+`<Figure>`, `<Callout>`, `<Compare>`, `<Scrolly>`/`<Step>`, `<Window>`,
+`<Reveal>` and `<App id="…">` (any desktop app, inline) without importing
+them, and can import their own components. Front matter adds `draft`,
+`layout` (`wide`, `custom`), `accent` and `theme`. Drafts show in dev and when
+built with `SHOW_DRAFTS=1`. `src/posts/article-field-guide.mdx` shows every
+component. Agents and `curl` get a markdown version (`src/posts/mdx-source.ts`).
+
+**Look.** Each theme in `src/styles.css` defines `--bg`/`--fg` plus `--accent`,
+`--sky` and `--sun`; "Color accents" in the Theme menu folds those back to the
+one-bit look. The wallpaper renders with WebGL 2 (`wallpaperGL.ts`) and falls
+back to the original canvas renderer.
+
 ## Markdown
 
 Blog posts are parsed with TanStack Markdown and code fences are highlighted

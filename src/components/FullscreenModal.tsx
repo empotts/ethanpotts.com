@@ -1,6 +1,10 @@
-import { motion } from "motion/react";
-import { useEffect, useRef } from "react";
-import { boot } from "./windows";
+import { motion, useScroll } from "motion/react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { wallpaperMode } from "./Wallpaper";
+import { boot, recentPress } from "./windows";
+import { reducedMotion, zoomRects } from "./zoom";
+
+const useIsoLayout = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 /**
  * Full-screen retro modal. Covers the desktop (but not the menu bar, which stays
@@ -8,6 +12,7 @@ import { boot } from "./windows";
  * close box, scrollable body, optional footer. Closes on Escape. Locks page scroll
  * and returns focus to whatever was focused before it opened.
  *
+ * Opens with zoom outlines from whatever was clicked and folds back on close.
  * Used for articles today; reusable for anything that needs the whole screen.
  */
 export function FullscreenModal({
@@ -18,6 +23,9 @@ export function FullscreenModal({
 	toolbar,
 	actions,
 	label,
+	progress = false,
+	theme,
+	accent,
 }: {
 	title: string;
 	onClose: () => void;
@@ -29,8 +37,52 @@ export function FullscreenModal({
 	actions?: React.ReactNode;
 	/** Accessible name if the visible title is not descriptive enough. */
 	label?: string;
+	/** Shows a reading-progress bar under the title bar. */
+	progress?: boolean;
+	/** Renders the modal in one theme, whatever the visitor picked. */
+	theme?: string;
+	/** Overrides the accent colour inside the modal. */
+	accent?: string;
 }) {
 	const panel = useRef<HTMLDivElement>(null);
+	const body = useRef<HTMLDivElement>(null);
+	const origin = useRef<ReturnType<typeof recentPress>>(null);
+	const animateIn = boot.hydrated && !reducedMotion();
+	const [shown, setShown] = useState(!animateIn);
+	const { scrollYProgress } = useScroll({ container: body });
+
+	// The wallpaper drifts a little as you read.
+	useEffect(() => scrollYProgress.on("change", (v) => (wallpaperMode.scroll = v)), [scrollYProgress]);
+	useEffect(
+		() => () => {
+			wallpaperMode.scroll = 0;
+		},
+		[],
+	);
+
+	useIsoLayout(() => {
+		origin.current = recentPress();
+		if (shown) return;
+		const r = panel.current?.getBoundingClientRect();
+		if (!origin.current || !r) {
+			setShown(true);
+			return;
+		}
+		let live = true;
+		zoomRects(origin.current, r).then(() => live && setShown(true));
+		return () => {
+			live = false;
+		};
+		// biome-ignore lint/correctness/useExhaustiveDependencies: runs once on open
+	}, []);
+
+	const close = useRef(onClose);
+	close.current = () => {
+		const r = panel.current?.getBoundingClientRect();
+		// Fold back toward whatever opened it (the post's line in Writing, usually).
+		if (r && origin.current) zoomRects(r, origin.current);
+		onClose();
+	};
 
 	useEffect(() => {
 		const previous = document.activeElement as HTMLElement | null;
@@ -39,7 +91,7 @@ export function FullscreenModal({
 		panel.current?.focus();
 		const onKey = (e: KeyboardEvent) => {
 			// A menu-bar menu handles its own Escape first.
-			if (e.key === "Escape" && !e.defaultPrevented) onClose();
+			if (e.key === "Escape" && !e.defaultPrevented) close.current();
 		};
 		window.addEventListener("keydown", onKey);
 		return () => {
@@ -47,31 +99,41 @@ export function FullscreenModal({
 			window.removeEventListener("keydown", onKey);
 			previous?.focus?.();
 		};
-	}, [onClose]);
+	}, []);
 
 	return (
-		<div className="modal-under-bar fixed inset-x-0 bottom-0 z-[90] p-0 sm:p-6" role="dialog" aria-modal="true" aria-label={label ?? title}>
+		<div
+			className="modal-under-bar fixed inset-x-0 bottom-0 z-[90] p-0 sm:p-6"
+			role="dialog"
+			aria-modal="true"
+			aria-label={label ?? title}
+			data-theme={theme}
+			style={accent ? ({ "--accent": accent } as React.CSSProperties) : undefined}
+		>
 			<motion.div
 				ref={panel}
 				tabIndex={-1}
-				initial={boot.hydrated ? { scale: 0.97, opacity: 0 } : false}
-				animate={{ scale: 1, opacity: 1 }}
-				transition={{ duration: 0.12, ease: "easeOut" }}
-				className="win flex h-full flex-col outline-none"
+				initial={animateIn ? { opacity: 0 } : false}
+				animate={shown ? { opacity: 1 } : { opacity: 0 }}
+				transition={{ duration: 0.1, ease: (t: number) => Math.ceil(t * 3) / 3 }}
+				className="win flex h-full flex-col text-black outline-none"
 			>
-				<header className="titlebar flex h-8 shrink-0 items-center gap-2 border-b-2 border-black px-2">
+				<header className="titlebar relative flex h-8 shrink-0 items-center gap-2 border-b-2 border-black px-2">
 					<button
 						type="button"
-						onClick={onClose}
+						onClick={() => close.current()}
 						aria-label="Close"
 						className="relative size-4 shrink-0 border-2 border-black bg-white after:absolute after:-inset-3 after:content-[''] hover:bg-black"
 					/>
 					<h2 className="mx-auto truncate bg-white px-3 font-ui text-sm leading-none">{title}</h2>
 					<span className="hidden shrink-0 bg-white px-2 font-ui text-xs sm:block">esc to close</span>
 					{actions && <div className="flex shrink-0 items-center bg-white px-1">{actions}</div>}
+					{progress && <motion.div aria-hidden className="read-progress" style={{ scaleX: scrollYProgress }} />}
 				</header>
 				{toolbar && <div className="shrink-0 border-b-2 border-black">{toolbar}</div>}
-				<div className="scroll-retro min-h-0 flex-1 overflow-auto">{children}</div>
+				<div ref={body} className="scroll-retro relative min-h-0 flex-1 overflow-auto">
+					{children}
+				</div>
 				{footer && <div className="shrink-0 border-t-2 border-black">{footer}</div>}
 			</motion.div>
 		</div>

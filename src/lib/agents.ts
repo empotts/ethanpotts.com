@@ -9,6 +9,7 @@
  * needs a Pro zone; this keeps it working on the Free plan and reads cleaner than
  * a conversion of the desktop's HTML would.
  */
+import { appsIn } from "@/apps/index";
 import { awards, currently, education, experience, profile, publicProjects, skills } from "@/data/profile";
 import { formatDay } from "@/lib/dates";
 import { SITE_URL } from "@/lib/seo";
@@ -140,6 +141,17 @@ function postPage(slug: string) {
 	return [...front, "", `# ${data.title}`, "", post.markdown].join("\n");
 }
 
+/** Games have their own URLs; agents get a short description of each. */
+const games = () => appsIn("games");
+function gameLine(g: ReturnType<typeof games>[number]) {
+	return `- [${g.title}](${abs(`/apps/${g.id}`)})${g.description ? `: ${g.description}` : ""}`;
+}
+function appPage(id: string) {
+	const g = games().find((a) => a.id === id);
+	if (!g) return null;
+	return [`# ${g.title}`, "", ...(g.description ? [g.description, ""] : []), `A game that runs in a window on the desktop at ${abs(`/apps/${g.id}`)}. It needs a browser with JavaScript.`].join("\n");
+}
+
 /** Markdown for a page path, or null when the path has no markdown view. */
 export function pageMarkdown(pathname: string, page = 1): string | null {
 	const path = pathname.replace(/\/+$/, "") || "/";
@@ -149,6 +161,8 @@ export function pageMarkdown(pathname: string, page = 1): string | null {
 	if (path === "/blog") return blogIndex(page);
 	const post = path.match(/^\/blog\/([^/]+)$/);
 	if (post) return postPage(decodeURIComponent(post[1]));
+	const app = path.match(/^\/apps\/([^/]+)$/);
+	if (app) return appPage(decodeURIComponent(app[1]));
 	return null;
 }
 
@@ -171,6 +185,7 @@ function llmsTxt() {
 		"## Posts",
 		"",
 		...posts.map(postLine),
+		...(games().length ? ["", "## Games", "", ...games().map(gameLine)] : []),
 	].join("\n");
 }
 
@@ -182,6 +197,7 @@ function sitemap() {
 		{ loc: abs("/resume") },
 		{ loc: abs("/blog"), lastmod: latest },
 		...posts.map((p) => ({ loc: abs(`/blog/${p.slug}`), lastmod: p.data.updated ?? p.data.date })),
+		...games().map((g) => ({ loc: abs(`/apps/${g.id}`) })),
 	];
 	const body = urls
 		.map((u) => `  <url><loc>${u.loc}</loc>${u.lastmod ? `<lastmod>${u.lastmod}</lastmod>` : ""}</url>`)

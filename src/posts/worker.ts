@@ -8,6 +8,8 @@ export interface PostSummary {
 	css: string;
 	html: string;
 	slug: string;
+	/** `mdx` posts render their own React body; `md` posts ship HTML. */
+	kind: "md" | "mdx";
 }
 
 export const getPosts = createServerFn().handler((): PostSummary[] =>
@@ -16,12 +18,13 @@ export const getPosts = createServerFn().handler((): PostSummary[] =>
 		css: post.css,
 		html: post.excerptHtml,
 		slug: post.slug,
+		kind: post.kind,
 	})),
 );
 
 export const getPost = createServerFn()
 	.validator((slug: string) => slug)
-	.handler(({ data: slug }) => {
+	.handler(({ data: slug }): PostSummary => {
 		const post = posts.find((candidate) => candidate.slug === slug);
 		if (!post) throw notFound();
 
@@ -30,5 +33,6 @@ export const getPost = createServerFn()
 			css: post.css,
 			html: post.html,
 			slug: post.slug,
+			kind: post.kind,
 		};
 	});

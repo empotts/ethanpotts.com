@@ -1,0 +1,73 @@
+---
+title: Article field guide
+description: Every building block an .mdx post can use, in one place.
+date: 2026-11-18
+draft: true
+tags: [meta, site]
+---
+
+Posts can now be `.mdx`: plain markdown, plus components from the desktop. This draft shows each one. It only appears in dev and on preview deploys.
+
+{/* excerpt */}
+
+## Figures that develop
+
+A `<Figure>` starts as one-bit dither in the current theme, adds the theme's colours, then shows the original. Switch themes and scroll back to see it re-dither.
+
+<Figure src="/posts/field-guide/ozark-dusk.png" alt="Layered purple hills under a dusk sky with a low yellow sun" caption="Illustration: dusk over layered ridges." />
+
+Plain markdown images work the same way:
+
+![Layered hills at dusk, the same illustration as above](/posts/field-guide/ozark-dusk.png)
+
+## Callouts
+
+<Callout title="How to write one">
+	Wrap any markdown in `<Callout title="…">`. The rule on the left takes the theme's accent.
+</Callout>
+
+## Before and after
+
+<Compare before="/posts/field-guide/ozark-dusk-grey.png" after="/posts/field-guide/ozark-dusk.png" alt="the dusk illustration" beforeLabel="Grey" afterLabel="Colour" />
+
+## Scrollytelling
+
+The picture stays pinned while the steps scroll past.
+
+<Scrolly>
+	<Step src="/posts/field-guide/step-1.png" alt="An empty gradient sky">
+		**Sky.** Start with a gradient.
+	</Step>
+	<Step src="/posts/field-guide/step-2.png" alt="The sky with a low sun">
+		**Sun.** Add one bright shape.
+	</Step>
+	<Step src="/posts/field-guide/step-3.png" alt="Two far ridges under the sun">
+		**Far hills.** Distant layers take the sky's colour.
+	</Step>
+	<Step src="/posts/field-guide/step-4.png" alt="The full scene with near ridges and pines">
+		**Near hills.** Darker and sharper as they come forward.
+	</Step>
+</Scrolly>
+
+## Apps inside a post
+
+Any desktop app can be embedded with `<App id="…" />`. Click the game to give it the keyboard.
+
+<App id="singletrack" title="Singletrack" />
+
+## A window around anything
+
+<Window title="notes.txt">
+	Use `<Window title="…">` to frame a quote, a list or a snippet.
+</Window>
+
+<Reveal>
+	`<Reveal>` wipes its contents in as they scroll into view.
+</Reveal>
+
+## Front matter
+
+- `draft: true` hides a post on the live site.
+- `layout: wide` widens the column; `layout: custom` drops the standard header.
+- `accent: "#c8102e"` changes the accent inside one post.
+- `theme: razorback` shows one post in a fixed theme.

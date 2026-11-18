@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Window } from "./Window";
+import { Window } from "@/components/Window";
 
 import { buildShow, PLAYBACK_RATE, spotOrder, type Drill, type Pt } from "./pregameDrill";
 
@@ -36,7 +36,7 @@ function drawField(ctx: CanvasRenderingContext2D, ink: string, paper: string) {
 	ctx.restore();
 }
 
-export function PregameWin({ onClose }: { onClose: () => void }) {
+export default function Pregame() {
 	const ref = useRef<HTMLCanvasElement>(null);
 	const [label, setLabel] = useState("Pregame");
 	const [run, setRun] = useState(0);
@@ -117,12 +117,6 @@ export function PregameWin({ onClose }: { onClose: () => void }) {
 
 	return (
 		<Window
-			id="pregame"
-			title="Pregame"
-			x={200}
-			y={90}
-			width={540}
-			onClose={onClose}
 			footer={
 				<div className="flex items-center justify-between px-3 py-1.5 text-xs">
 					<span className="font-ui">{label}</span>

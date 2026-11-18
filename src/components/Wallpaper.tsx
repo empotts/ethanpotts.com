@@ -1,10 +1,16 @@
 import { useEffect, useRef } from "react";
 import { profile } from "@/data/profile";
+import { startGL } from "./wallpaperGL";
 
 /*
  * Animated desktop wallpaper: rolling Ozark hills, drifting clouds, and a sun or
- * moon that follows the real time in Rogers, Arkansas. The scene is shaded in
- * greyscale, then reduced to the theme's two colours with an 8×8 Bayer matrix.
+ * moon that follows the real time in Rogers, Arkansas.
+ *
+ * The WebGL renderer (wallpaperGL.ts) dithers the scene across the theme's
+ * palette: hills fade toward the sky colour with distance, the sun takes the sun
+ * colour, and the layers drift with the pointer and with article scrolling.
+ * Without WebGL 2, the original renderer below shades in greyscale and reduces
+ * to the theme's two colours with an 8×8 Bayer matrix.
  */
 
 const BAYER8 = [
@@ -12,7 +18,7 @@ const BAYER8 = [
 	33, 9, 41, 51, 19, 59, 27, 49, 17, 57, 25, 15, 47, 7, 39, 13, 45, 5, 37, 63, 31, 55, 23, 61, 29, 53, 21,
 ].map((v) => (v + 0.5) / 64);
 
-const PIXEL = 3; // screen pixels per dither pixel
+const PIXEL = 3; // screen pixels per dither pixel (2D fallback)
 
 function hash(n: number) {
 	const x = Math.sin(n * 127.1) * 43758.5453;
@@ -52,7 +58,7 @@ function parseColor(c: string, ctx: CanvasRenderingContext2D): [number, number, 
 }
 
 /** Hours since midnight in Rogers, AR (fractional). */
-function localHour() {
+export function localHour() {
 	const parts = new Intl.DateTimeFormat("en-US", { timeZone: profile.timezone, hour: "numeric", minute: "numeric", hour12: false }).formatToParts(new Date());
 	const get = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? 0);
 	return (get("hour") % 24) + get("minute") / 60;
@@ -68,12 +74,14 @@ export const wallpaperShot: { take: (() => string) | null } = { take: null };
 export const wallpaperMode = {
 	saver: false,
 	night: false,
+	/** Reading progress (0–1) of an open article; the hills drift with it. */
+	scroll: 0,
 	redraw: () => {},
 	shoot: () => {},
 };
 
 /** The Big Dipper, handle to bowl, in star-spacing units. */
-const DIPPER: [number, number][] = [
+export const DIPPER: [number, number][] = [
 	[0, 0],
 	[4, 1.5],
 	[7.5, 2.5],
@@ -89,6 +97,23 @@ export function Wallpaper() {
 	useEffect(() => {
 		const canvas = ref.current;
 		if (!canvas) return;
+		return startGL(canvas) ?? start2D(canvas);
+	}, []);
+
+	return (
+		<canvas
+			ref={ref}
+			className="wallpaper pointer-events-none fixed inset-0 h-full w-full"
+			style={{ imageRendering: "pixelated" }}
+			aria-label="Dithered landscape of rolling hills; the sky follows the time of day in Rogers, Arkansas"
+			role="img"
+		/>
+	);
+}
+
+/** The original one-bit renderer, for browsers without WebGL 2. */
+function start2D(canvas: HTMLCanvasElement): (() => void) | undefined {
+	{
 		const ctx = canvas.getContext("2d");
 		if (!ctx) return;
 		const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -309,15 +334,5 @@ export function Wallpaper() {
 			mo.disconnect();
 			mq.removeEventListener("change", onScheme);
 		};
-	}, []);
-
-	return (
-		<canvas
-			ref={ref}
-			className="wallpaper pointer-events-none fixed inset-0 h-full w-full"
-			style={{ imageRendering: "pixelated" }}
-			aria-label="Dithered landscape of rolling hills; the sky follows the time of day in Rogers, Arkansas"
-			role="img"
-		/>
-	);
+	}
 }
