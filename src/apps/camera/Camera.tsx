@@ -96,7 +96,11 @@ export default function Camera() {
 
 	// The viewfinder: grab the wallpaper a few times a second and develop it with the current settings.
 	useEffect(() => {
-		source.current ??= document.createElement("canvas");
+		if (!source.current) {
+			source.current = document.createElement("canvas");
+			// The first getContext call fixes the options; this canvas is read every frame.
+			source.current.getContext("2d", { willReadFrequently: true });
+		}
 		let timer = 0;
 		const tick = () => {
 			const src = source.current;
