@@ -152,7 +152,7 @@ export function Scrolly({ children }: { children: React.ReactNode }) {
 	);
 }
 
-/** Wipes its children in, in steps, as they scroll into view. */
+/** Wipes its children in as they scroll into view. */
 export function Reveal({ children }: { children: React.ReactNode }) {
 	return <div className="reveal">{children}</div>;
 }

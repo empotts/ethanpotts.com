@@ -38,7 +38,7 @@ export default defineApp({
 	order: 4,
 	description: "Notes and posts by Ethan Potts.",
 	route: "/blog",
-	window: { x: 180, y: 160, width: 420, resizable: true, minWidth: 320 },
+	window: { x: 180, y: 160, width: 420 },
 	info: ({ posts }) => [["Kind", "Folder"], ["Items", `${posts.length} posts`]],
 	component: Writing,
 });

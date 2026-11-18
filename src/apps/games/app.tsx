@@ -44,7 +44,7 @@ export default defineApp({
 	place: "extras",
 	order: 5,
 	description: "Small games that run on the desktop.",
-	window: { x: 300, y: 140, width: 320, minWidth: 260 },
+	window: { x: 300, y: 140, width: 320 },
 	info: () => [["Kind", "Folder"], ["Items", String(appsIn("games").length)]],
 	component: Games,
 });

@@ -5,8 +5,8 @@ export type RGB = [number, number, number];
 
 /**
  * The active theme as colours a canvas can use. Every theme has ink (`fg`),
- * paper (`bg`), one UI accent, a sky tint and a sun/highlight colour; with
- * colour accents off, the last three fall back to ink.
+ * paper (`bg`), one UI accent, a sky tint, a sun/highlight colour, a purple
+ * (`dusk`) and a coral (`rose`).
  */
 export type Palette = {
 	bg: string;
@@ -14,7 +14,9 @@ export type Palette = {
 	accent: string;
 	sky: string;
 	sun: string;
-	rgb: { bg: RGB; fg: RGB; accent: RGB; sky: RGB; sun: RGB };
+	dusk: string;
+	rose: string;
+	rgb: { bg: RGB; fg: RGB; accent: RGB; sky: RGB; sun: RGB; dusk: RGB; rose: RGB };
 	/** `a` blended toward `b` by `t`, as a CSS colour. */
 	mix: (a: RGB, b: RGB, t: number) => string;
 };
@@ -48,6 +50,8 @@ export function readPalette(el: Element = document.documentElement): Palette {
 		accent: parseColor(get("--accent") || get("--fg")),
 		sky: parseColor(get("--sky") || get("--fg")),
 		sun: parseColor(get("--sun") || get("--fg")),
+		dusk: parseColor(get("--dusk") || get("--sky") || get("--fg")),
+		rose: parseColor(get("--rose") || get("--sun") || get("--fg")),
 	};
 	return {
 		bg: css(rgb.bg),
@@ -55,6 +59,8 @@ export function readPalette(el: Element = document.documentElement): Palette {
 		accent: css(rgb.accent),
 		sky: css(rgb.sky),
 		sun: css(rgb.sun),
+		dusk: css(rgb.dusk),
+		rose: css(rgb.rose),
 		rgb,
 		mix: (a, b, t) => css(mixRGB(a, b, t)),
 	};

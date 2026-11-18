@@ -8,6 +8,8 @@ export const getRouter = () => {
 	return createRouter({
 		routeTree,
 		scrollRestoration: true,
-		defaultPreloadStaleTime: 0,
+		// Hovering (or touching) a link fetches its page, so opening it starts at once.
+		defaultPreload: "intent",
+		defaultPreloadStaleTime: 30_000,
 	});
 };

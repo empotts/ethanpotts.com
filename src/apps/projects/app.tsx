@@ -44,7 +44,7 @@ export default defineApp({
 	order: 2,
 	description: "Apps, games and tools I've built.",
 	route: "/projects",
-	window: { x: 260, y: 70, width: 540, resizable: true, minWidth: 360 },
+	window: { x: 260, y: 70, width: 540 },
 	info: () => [["Kind", "Folder"], ["Items", String(publicProjects.length)]],
 	component: Projects,
 });

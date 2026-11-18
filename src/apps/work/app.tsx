@@ -61,7 +61,7 @@ export default defineApp({
 	order: 3,
 	description: "Experience, education and awards.",
 	route: "/resume",
-	window: { x: 340, y: 110, width: 620, resizable: true, minWidth: 420 },
+	window: { x: 340, y: 110, width: 620 },
 	info: () => [["Kind", "Folder"], ["Items", `${experience.length} roles`]],
 	component: Work,
 });

@@ -3,7 +3,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { TrafficLights } from "./TrafficLights";
 import { wallpaperMode } from "./Wallpaper";
 import { boot, recentPress } from "./windows";
-import { reducedMotion, zoomRects } from "./zoom";
+import { centerOf, ditherSweep, reducedMotion } from "./motion";
 
 const useIsoLayout = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
@@ -13,7 +13,8 @@ const useIsoLayout = typeof window === "undefined" ? useEffect : useLayoutEffect
  * close box, scrollable body, optional footer. Closes on Escape. Locks page scroll
  * and returns focus to whatever was focused before it opened.
  *
- * Opens with zoom outlines from whatever was clicked and folds back on close.
+ * Opens with a dithered sweep spreading from whatever was clicked, and pulls
+ * back into it on close.
  * Used for articles today; reusable for anything that needs the whole screen.
  */
 export function FullscreenModal({
@@ -72,27 +73,28 @@ export function FullscreenModal({
 		[],
 	);
 
+	const wrap = useRef<HTMLDivElement>(null);
 	useIsoLayout(() => {
 		origin.current = recentPress();
-		if (shown) return;
-		const r = panel.current?.getBoundingClientRect();
-		if (!origin.current || !r) {
-			setShown(true);
-			return;
-		}
+		if (shown || !wrap.current) return;
+		// Paper spreads over the desktop, the page appears under it, and the paper lifts.
+		const sweep = ditherSweep("cover", centerOf(origin.current), wrap.current);
 		let live = true;
-		zoomRects(origin.current, r).then(() => live && setShown(true));
+		sweep.done.then(() => {
+			if (live) setShown(true);
+			requestAnimationFrame(() => requestAnimationFrame(sweep.remove));
+		});
 		return () => {
 			live = false;
+			sweep.remove();
 		};
 		// biome-ignore lint/correctness/useExhaustiveDependencies: runs once on open
 	}, []);
 
 	const close = useRef(onClose);
 	close.current = () => {
-		const r = panel.current?.getBoundingClientRect();
-		// Fold back toward whatever opened it (the post's line in Writing, usually).
-		if (r && origin.current) zoomRects(r, origin.current);
+		// The page pulls back into whatever opened it (the post's line in Writing, usually).
+		if (wrap.current && !reducedMotion()) ditherSweep("uncover", centerOf(origin.current), wrap.current, 260);
 		onClose();
 	};
 
@@ -115,6 +117,7 @@ export function FullscreenModal({
 
 	return (
 		<div
+			ref={wrap}
 			className="modal-under-bar fixed inset-x-0 bottom-0 z-[90]"
 			role="dialog"
 			aria-modal="true"
@@ -127,7 +130,7 @@ export function FullscreenModal({
 				tabIndex={-1}
 				initial={animateIn ? { opacity: 0 } : false}
 				animate={shown ? { opacity: 1 } : { opacity: 0 }}
-				transition={{ duration: 0.1, ease: (t: number) => Math.ceil(t * 3) / 3 }}
+				transition={{ duration: 0 }}
 				className="win modal-full flex h-full flex-col text-black outline-none"
 			>
 				<header className="titlebar relative flex h-8 shrink-0 items-center gap-2 border-b-2 border-black px-2">
@@ -138,7 +141,7 @@ export function FullscreenModal({
 					{progress && <motion.div aria-hidden className="read-progress" style={{ scaleX: scrollYProgress }} />}
 				</header>
 				{toolbar && <div className="shrink-0 border-b-2 border-black">{toolbar}</div>}
-				<div ref={body} className="scroll-retro relative min-h-0 flex-1 overflow-auto">
+				<div ref={body} className="scroll-retro relative min-h-0 flex-1 overflow-auto" data-enter={animateIn && shown ? "" : undefined}>
 					{children}
 				</div>
 				{footer && <div className="shrink-0 border-t-2 border-black">{footer}</div>}

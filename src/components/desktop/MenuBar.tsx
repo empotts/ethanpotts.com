@@ -3,8 +3,8 @@ import { useEffect, useId, useRef, useState } from "react";
 import { formatTime, setH24, useH24, useNow } from "../clock";
 import { type IconName, PixelIcon } from "../icons";
 import { Logo } from "../Logo";
-import { THEMES, useColorAccents, useCrt, useTheme } from "../theme";
-import { openWin, resetDesk } from "../windows";
+import { THEMES, useCrt, useTheme } from "../theme";
+import { openWin, resetDesk, setSnap, useSnapSetting } from "../windows";
 
 /** One launchable thing, as the menu bar and desktop show it. */
 export type DesktopApp = { id: string; icon: IconName | "logo"; label: string; onOpen: (from?: Element) => void; info: [string, string][] };
@@ -85,7 +85,6 @@ const menuItem = "flex min-h-11 w-full items-center gap-2 px-3 text-left hover:b
 
 function ThemeMenu({ open, onToggle, onClose }: { open: boolean; onToggle: () => void; onClose: () => void }) {
 	const [theme, setTheme] = useTheme();
-	const [color, setColor] = useColorAccents();
 	const [crt, setCrt] = useCrt();
 	return (
 		<ToolbarMenu name="Choose theme" alignEnd label={<span><span className="theme-sun"><PixelIcon name="sun" size={22} /></span><span className="theme-moon"><PixelIcon name="moon" size={22} /></span></span>} open={open} onToggle={onToggle} onClose={onClose}>
@@ -96,14 +95,12 @@ function ThemeMenu({ open, onToggle, onClose }: { open: boolean; onToggle: () =>
 					<span className="ml-auto flex gap-0.5" data-theme={t.id === "auto" ? undefined : t.id} aria-hidden>
 						<span className="swatch" style={{ background: "var(--fg)" }} />
 						<span className="swatch" style={{ background: "var(--accent)" }} />
-						<span className="swatch" style={{ background: "var(--sky)" }} />
+						<span className="swatch" style={{ background: "var(--sun)" }} />
+						<span className="swatch" style={{ background: "var(--dusk)" }} />
 					</span>
 				</button>
 			))}
 			<div className="my-1 border-t border-dashed border-black" />
-			<button type="button" aria-pressed={color} className={menuItem} onClick={() => setColor(!color)}>
-				<span className="w-3" aria-hidden>{color ? "✓" : ""}</span>Color accents
-			</button>
 			<button type="button" aria-pressed={crt} className={menuItem} onClick={() => setCrt(!crt)}>
 				<span className="w-3" aria-hidden>{crt ? "✓" : ""}</span>CRT glass
 			</button>
@@ -120,6 +117,16 @@ function AppShortcut({ app, onLaunch, compact = false }: { app: DesktopApp; onLa
 	);
 }
 
+/** Snap view only matters where windows float side by side, so phones don't see it. */
+function SnapToggle() {
+	const on = useSnapSetting();
+	return (
+		<button type="button" aria-pressed={on} className="hidden min-h-11 w-full items-center gap-2 px-3 text-left hover:bg-black hover:text-white min-[900px]:flex" onClick={() => setSnap(!on)}>
+			<span className="w-3" aria-hidden>{on ? "✓" : ""}</span>Snap windows
+		</button>
+	);
+}
+
 export function MenuBar({ apps }: { apps: DesktopApp[] }) {
 	const [menu, setMenu] = useState<"site" | "apps" | "theme" | null>(null);
 	const close = () => setMenu(null);
@@ -132,6 +139,7 @@ export function MenuBar({ apps }: { apps: DesktopApp[] }) {
 				<button type="button" className="block min-h-11 w-full px-3 text-left hover:bg-black hover:text-white" onClick={(e) => { openWin("contact", { from: e.currentTarget }); close(); }}>Contact</button>
 				<div className="my-1 border-t border-dashed border-black" />
 				<button type="button" className="block min-h-11 w-full px-3 text-left hover:bg-black hover:text-white" onClick={() => { resetDesk(); close(); }}>Clean up desktop</button>
+				<SnapToggle />
 			</ToolbarMenu>
 			<Link to="/projects" className="flex min-h-11 items-center px-2 hover:bg-black hover:text-white min-[721px]:min-h-7 min-[721px]:px-3">Projects</Link>
 			<Link to="/resume" className="hidden px-3 py-0.5 hover:bg-black hover:text-white min-[721px]:block">Work</Link>

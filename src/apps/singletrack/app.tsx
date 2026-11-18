@@ -9,7 +9,7 @@ export default defineApp({
 	place: "games",
 	order: 1,
 	description: "Ride an endless Ozark trail: pump the downhills, hop the rocks, don't stall.",
-	window: { x: 160, y: 60, width: 560, resizable: true, minWidth: 360 },
+	window: { x: 160, y: 60, width: 560 },
 	info: () => [
 		["Kind", "Game"],
 		["Controls", "Space hop · ↓ pump"],

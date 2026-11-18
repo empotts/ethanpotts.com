@@ -50,7 +50,7 @@ function AppWindow({ app, active, payload, onClose }: { app: AppDef; active: boo
 	if (!Body) return null;
 	return (
 		<AppFrameContext.Provider value={{ app, active, embedded: false, close: onClose }}>
-			{/* No placeholder window: the real one zooms open once its code arrives (usually preloaded on hover). */}
+			{/* No placeholder window: the real one sweeps open once its code arrives (usually preloaded on hover). */}
 			<Suspense fallback={null}>
 				<Body payload={payload} />
 			</Suspense>
@@ -79,10 +79,13 @@ export function Desktop({ posts, children }: { posts: PostSummary[]; children: R
 
 	// Opening a window from the menu bar while reading leaves the article for the desktop.
 	const openedAt = useRef(opened);
+	/** Set when a launch is already navigating somewhere, so this doesn't send it back to "/". */
+	const routing = useRef(false);
 	useEffect(() => {
 		if (opened === openedAt.current) return;
 		openedAt.current = opened;
-		if (current === "post") navigate({ to: "/" });
+		if (routing.current) routing.current = false;
+		else if (current === "post") navigate({ to: "/" });
 	}, [opened, current, navigate]);
 
 	const visible = new Set(open);
@@ -93,10 +96,12 @@ export function Desktop({ posts, children }: { posts: PostSummary[]; children: R
 		if (current === id) navigate({ to: "/" });
 	};
 	const launch = (app: AppDef) => (from?: Element) => {
-		if (app.launch) app.launch();
-		else if (app.route) navigate({ to: app.route });
+		if (app.launch) return app.launch();
+		// Open at once; an app with its own URL updates the address bar alongside, without waiting on it.
+		routing.current = Boolean(app.route || app.place === "games");
+		openWin(app.id, { from });
+		if (app.route) navigate({ to: app.route });
 		else if (app.place === "games") navigate({ to: "/apps/$id", params: { id: app.id } });
-		else openWin(app.id, { from });
 	};
 	const toDesktop = (app: AppDef): DesktopApp => ({
 		id: app.id,
@@ -147,7 +152,7 @@ export function Desktop({ posts, children }: { posts: PostSummary[]; children: R
 					{children}
 					{trash && (
 						<div className="fixed inset-0 z-[200] flex items-center justify-center bg-white/50">
-							<div className="win pop-in w-80 p-5" role="alertdialog" aria-label="Trash">
+							<div className="win pop-in relative w-80 p-5" role="alertdialog" aria-label="Trash">
 								<div className="flex gap-4">
 									<PixelIcon name={trashed.length ? "trashFull" : "trash"} size={40} />
 									{trashed.length ? (

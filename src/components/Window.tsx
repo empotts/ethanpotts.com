@@ -1,9 +1,9 @@
-import { motion, useDragControls, useMotionValue } from "motion/react";
+import { animate, motion, useDragControls, useMotionValue } from "motion/react";
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { AppDef } from "@/apps/define";
 import { TrafficLights } from "./TrafficLights";
-import { boot, focusWin, iconRect, takeOrigin, toggleMaximize, trashTarget, trashWin, useWindows, type WinId } from "./windows";
-import { reducedMotion, zoomRects } from "./zoom";
+import { boot, dropInRow, focusWin, iconRect, takeOrigin, toggleMaximize, trashTarget, trashWin, useSnapLayout, useWindows, type WinId } from "./windows";
+import { centerOf, ditherSweep, EASE_EXIT, EASE_SOFT, originFor, reducedMotion } from "./motion";
 
 export const DeskRef = createContext<React.RefObject<HTMLDivElement | null> | null>(null);
 
@@ -56,7 +56,7 @@ export function Window(props: WindowProps) {
 /** The same chrome, sitting still inside an article. */
 function EmbeddedWindow({ title, children, footer }: { title: string; children: React.ReactNode; footer?: React.ReactNode }) {
 	return (
-		<section className="win not-prose my-6 flex flex-col" aria-label={title}>
+		<section className="win relative not-prose my-6 flex flex-col" aria-label={title}>
 			<header className="titlebar flex h-7 shrink-0 items-center border-b-2 border-black px-1.5">
 				<span className="mx-auto bg-white px-2 font-ui text-sm leading-none">{title}</span>
 			</header>
@@ -75,8 +75,6 @@ function DeskWindow({ title: titleProp, children, footer, x: xProp, y: yProp, wi
 	const x0 = xProp ?? cfg?.x ?? 120;
 	const y0 = yProp ?? cfg?.y ?? 80;
 	const w0 = wProp ?? cfg?.width ?? 420;
-	/** Narrowest the window may get, so its contents never collide. */
-	const minW = Math.min(w0, cfg?.minWidth ?? 280);
 
 	const desk = useContext(DeskRef);
 	const controls = useDragControls();
@@ -85,29 +83,36 @@ function DeskWindow({ title: titleProp, children, footer, x: xProp, y: yProp, wi
 	const z = order.indexOf(id) + 10;
 	const active = order[order.length - 1] === id;
 	const max = maximized.includes(id);
+	// Snap view (wide screens) places the window in the row; otherwise it sits where its app says.
+	const slot = useSnapLayout(id)?.get(id);
+	// Same idea for the phone stack: a window not yet in the list is the newest.
+	const stackIndex = open.includes(id) ? open.indexOf(id) : open.length;
+	const x = slot?.x ?? x0;
+	const y = slot?.y ?? y0;
 	const [trashing, setTrashing] = useState(false);
-	const [closing, setClosing] = useState(false);
-	const [size, setSize] = useState<{ w: number; h?: number }>({ w: w0, h: cfg?.height });
 	const el = useRef<HTMLElement>(null);
 	const dx = useMotionValue(0);
 	const dy = useMotionValue(0);
 
-	// Opening: outlines zoom from whatever opened the window, then it appears.
+	// Opening: the same dithered sweep as articles, sized to the window. Paper spreads
+	// over its place from whatever opened it, then the window shows under it and
+	// its contents settle in. Starts before the first paint, so there's no wait.
 	const animateIn = boot.hydrated && !reducedMotion();
 	const [shown, setShown] = useState(!animateIn);
 	const origin = useRef<ReturnType<typeof takeOrigin>>(null);
 	useIsoLayout(() => {
 		origin.current = takeOrigin(id);
-		if (shown) return;
-		const r = el.current?.getBoundingClientRect();
-		if (!origin.current || !r) {
-			setShown(true);
-			return;
-		}
+		const node = el.current;
+		if (!animateIn || !node) return;
+		const sweep = ditherSweep("cover", centerOf(origin.current), node, 240, node.getBoundingClientRect());
 		let live = true;
-		zoomRects(origin.current, r).then(() => live && setShown(true));
+		sweep.done.then(() => {
+			if (live) setShown(true);
+			requestAnimationFrame(() => requestAnimationFrame(sweep.remove));
+		});
 		return () => {
 			live = false;
+			sweep.remove();
 		};
 		// biome-ignore lint/correctness/useExhaustiveDependencies: runs once as the window mounts
 	}, []);
@@ -131,42 +136,14 @@ function DeskWindow({ title: titleProp, children, footer, x: xProp, y: yProp, wi
 		toggleMaximize(id);
 	};
 
-	// Closing: the window folds back into its icon (or wherever it came from).
+	// Closing: the window turns to paper and dissolves back toward its icon (or wherever it came from).
 	const requestClose = () => {
-		const r = el.current?.getBoundingClientRect();
-		const to = iconRect(id) ?? origin.current;
-		if (r && to) zoomRects(r, to);
-		if (reducedMotion()) close();
-		else setClosing(true);
+		const node = el.current;
+		// Not on phones: there the stack closes up at once and the paper would sit over the next window.
+		if (node && !narrow && !reducedMotion()) ditherSweep("uncover", centerOf(iconRect(id) ?? origin.current), node, 200, node.getBoundingClientRect());
+		close();
 	};
 
-	const startResize = (e: React.PointerEvent) => {
-		e.preventDefault();
-		e.stopPropagation();
-		const r = el.current?.getBoundingClientRect();
-		const body = el.current?.querySelector<HTMLElement>("[data-win-body]");
-		if (!r || !body) return;
-		const sx = e.clientX;
-		const sy = e.clientY;
-		const startW = r.width;
-		const startH = body.getBoundingClientRect().height;
-		const minH = cfg?.minHeight ?? 120;
-		// Dragging the grow box would otherwise select (and highlight) the window's text.
-		const { userSelect } = document.body.style;
-		document.body.style.userSelect = "none";
-		const move = (ev: PointerEvent) => {
-			setSize({ w: Math.max(minW, startW + ev.clientX - sx), h: Math.max(minH, startH + ev.clientY - sy) });
-		};
-		const up = () => {
-			document.body.style.userSelect = userSelect;
-			window.removeEventListener("pointermove", move);
-			window.removeEventListener("pointerup", up);
-		};
-		window.addEventListener("pointermove", move);
-		window.addEventListener("pointerup", up);
-	};
-
-	const visible = shown && !closing && !trashing;
 	return (
 		<motion.section
 			ref={el}
@@ -181,45 +158,49 @@ function DeskWindow({ title: titleProp, children, footer, x: xProp, y: yProp, wi
 				const r = trashTarget.el?.getBoundingClientRect();
 				const px = info.point.x - window.scrollX;
 				const py = info.point.y - window.scrollY;
-				if (r && px >= r.left && px <= r.right && py >= r.top && py <= r.bottom) setTrashing(true);
+				if (r && px >= r.left && px <= r.right && py >= r.top && py <= r.bottom) {
+					// Shrink and tumble into the Trash.
+					const node = el.current;
+					if (node) node.style.transformOrigin = originFor(r, node.getBoundingClientRect());
+					setTrashing(true);
+					return;
+				}
+				// In snap view a dropped window takes its new place in the row and glides into it.
+				if (slot) {
+					const box = el.current?.getBoundingClientRect();
+					if (box) dropInRow(id, box.left + box.width / 2);
+					const glide = { duration: 0.3, ease: EASE_SOFT };
+					animate(dx, 0, glide);
+					animate(dy, 0, glide);
+				}
 			}}
-			initial={animateIn ? { opacity: 0, scale: 1 } : false}
-			animate={
-				trashing
-					? { scale: 0.05, opacity: 0, rotate: -30 }
-					: closing
-						? { scale: 0.9, opacity: 0 }
-						: visible
-							? { scale: 1, opacity: 1 }
-							: { opacity: 0, scale: 1 }
-			}
-			// One-bit motion: hard steps rather than glides.
-			transition={
-				trashing
-					? { duration: 0.3, ease: (t: number) => Math.floor(t * 6) / 6 }
-					: closing
-						? { duration: 0.14, ease: (t: number) => Math.floor(t * 3) / 3 }
-						: { duration: 0.1, ease: (t: number) => Math.ceil(t * 3) / 3 }
-			}
+			initial={false}
+			animate={trashing ? { scale: 0.05, opacity: 0, rotate: -24 } : { scale: 1, opacity: 1 }}
+			transition={{ duration: 0.28, ease: EASE_EXIT }}
 			onAnimationComplete={() => {
 				if (trashing) {
 					trashWin(id);
 					close();
-				} else if (closing) close();
+				}
 			}}
 			className="win desk-win flex flex-col"
 			data-max={max ? "" : undefined}
+			// Windows already there on first load rise in with CSS instead.
+			data-boot={animateIn ? undefined : ""}
+			// Glide between snap places once the visitor is using the desk (not on first paint).
+			data-glide={slot && boot.hydrated ? "" : undefined}
 			style={
 				{
 					x: dx,
 					y: dy,
-					"--x": `${x0}px`,
-					"--y": `${y0}px`,
-					"--w": `${size.w}px`,
-					"--min-w": `${minW}px`,
-					"--h": size.h ? `${size.h}px` : undefined,
-					"--stack-order": open.indexOf(id),
+					"--x": `${x}px`,
+					"--y": `${y}px`,
+					"--w": `${w0}px`,
+					"--h": cfg?.height ? `${cfg.height}px` : undefined,
+					"--stack-order": stackIndex,
 					zIndex: z,
+					// Hidden (but laid out) while the sweep fills its place.
+					visibility: shown ? undefined : "hidden",
 				} as unknown as React.CSSProperties
 			}
 			aria-label={title}
@@ -232,19 +213,10 @@ function DeskWindow({ title: titleProp, children, footer, x: xProp, y: yProp, wi
 				<TrafficLights title={title} onClose={requestClose} onMaximize={maximize} maximized={max} dim={!active} />
 				<h2 className="pointer-events-none absolute left-1/2 max-w-[calc(100%-9rem)] -translate-x-1/2 truncate bg-white px-2 font-ui text-sm leading-none">{title}</h2>
 			</header>
-			<div data-win-body className={`scroll-retro min-h-0 flex-1 overflow-auto ${size.h ? "win-fixed-h" : ""}`}>
+			<div data-win-body data-enter={animateIn && shown ? "" : undefined} className={`scroll-retro min-h-0 flex-1 overflow-auto ${cfg?.height ? "win-fixed-h" : ""}`}>
 				{children}
 			</div>
 			{footer && <div className="shrink-0 border-t-2 border-black">{footer}</div>}
-			{cfg?.resizable && !narrow && !max && (
-				<button
-					type="button"
-					aria-label={`Resize ${title}`}
-					tabIndex={-1}
-					onPointerDown={startResize}
-					className="grow-box absolute right-0 bottom-0 size-4 cursor-nwse-resize"
-				/>
-			)}
 		</motion.section>
 	);
 }

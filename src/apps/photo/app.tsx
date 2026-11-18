@@ -41,6 +41,6 @@ export default defineApp<Photo>({
 	icon: "camera",
 	place: "hidden",
 	// Opens to the right of the Camera so the two sit side by side.
-	window: { x: 752, y: 90, width: 340, resizable: true, minWidth: 280 },
+	window: { x: 752, y: 90, width: 340 },
 	component: PhotoView,
 });

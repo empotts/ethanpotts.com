@@ -9,7 +9,7 @@ export default defineApp({
 	place: "extras",
 	order: 20,
 	description: "Photograph the wallpaper. Set the aperture, shutter and ISO until the meter reads zero.",
-	window: { x: 240, y: 60, width: 500, minWidth: 340 },
+	window: { x: 240, y: 60, width: 500 },
 	info: () => [["Kind", "Application"], ["Controls", "Aperture · Shutter · ISO"], ["Subject", "The wallpaper"], ["Version", appVersion()]],
 	load: () => import("./Camera"),
 });

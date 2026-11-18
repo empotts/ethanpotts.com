@@ -54,8 +54,7 @@ built with `SHOW_DRAFTS=1`. `src/posts/article-field-guide.mdx` shows every
 component. Agents and `curl` get a markdown version (`src/posts/mdx-source.ts`).
 
 **Look.** Each theme in `src/styles.css` defines `--bg`/`--fg` plus `--accent`,
-`--sky` and `--sun`; "Color accents" in the Theme menu folds those back to the
-one-bit look. The wallpaper renders with WebGL 2 (`wallpaperGL.ts`) and falls
+`--sky` and `--sun`. The wallpaper renders with WebGL 2 (`wallpaperGL.ts`) and falls
 back to the original canvas renderer.
 
 ## Markdown

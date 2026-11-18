@@ -30,10 +30,6 @@ export type AppDef = {
 		width: number;
 		/** Fixed body height; omit to size to content. */
 		height?: number;
-		/** Shows a grow box in the corner. */
-		resizable?: boolean;
-		minWidth?: number;
-		minHeight?: number;
 	};
 	/** A page path this app owns; opening the app navigates there. */
 	route?: string;

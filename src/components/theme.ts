@@ -14,13 +14,11 @@ export const THEMES = [
 
 export type ThemeId = (typeof THEMES)[number]["id"];
 const KEY = "ep-theme";
-/** "off" keeps the original one-bit look: every accent falls back to the ink colour. */
-const COLOR_KEY = "ep-color";
 /** "on" adds a CRT glass layer: scanlines, glow and a vignette. */
 const CRT_KEY = "ep-crt";
 
 /** Runs in <head> before first paint so the saved look never flashes. */
-export const themeBootScript = `try{var d=document.documentElement,t=localStorage.getItem("${KEY}");if(t&&t!=="auto")d.dataset.theme=t;if(localStorage.getItem("${COLOR_KEY}")==="off")d.dataset.color="off";if(localStorage.getItem("${CRT_KEY}")==="on")d.dataset.crt=""}catch(e){}`;
+export const themeBootScript = `try{var d=document.documentElement,t=localStorage.getItem("${KEY}");if(t&&t!=="auto")d.dataset.theme=t;if(localStorage.getItem("${CRT_KEY}")==="on")d.dataset.crt=""}catch(e){}`;
 
 export function applyTheme(id: ThemeId) {
 	const el = document.documentElement;
@@ -48,8 +46,8 @@ export function useTheme() {
 }
 
 /** A boolean look setting stored in localStorage and mirrored on <html>. */
-function useFlag(key: string, attr: "color" | "crt", fromStore: (v: string | null) => boolean, apply: (on: boolean) => void) {
-	const [on, setOn] = useState(attr === "color");
+function useFlag(key: string, fromStore: (v: string | null) => boolean, apply: (on: boolean) => void) {
+	const [on, setOn] = useState(false);
 	useEffect(() => {
 		try {
 			setOn(fromStore(localStorage.getItem(key)));
@@ -65,26 +63,9 @@ function useFlag(key: string, attr: "color" | "crt", fromStore: (v: string | nul
 	] as const;
 }
 
-export function useColorAccents() {
-	return useFlag(
-		COLOR_KEY,
-		"color",
-		(v) => v !== "off",
-		(on) => {
-			const el = document.documentElement;
-			if (on) delete el.dataset.color;
-			else el.dataset.color = "off";
-			try {
-				localStorage.setItem(COLOR_KEY, on ? "on" : "off");
-			} catch {}
-		},
-	);
-}
-
 export function useCrt() {
 	return useFlag(
 		CRT_KEY,
-		"crt",
 		(v) => v === "on",
 		(on) => {
 			const el = document.documentElement;
@@ -97,10 +78,10 @@ export function useCrt() {
 	);
 }
 
-/** Calls back whenever the palette may have changed: theme, colour setting or system scheme. */
+/** Calls back whenever the palette may have changed: theme or system scheme. */
 export function onPaletteChange(cb: () => void) {
 	const mo = new MutationObserver(cb);
-	mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "data-color"] });
+	mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 	const mq = window.matchMedia("(prefers-color-scheme: dark)");
 	mq.addEventListener("change", cb);
 	return () => {

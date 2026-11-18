@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { onPaletteChange } from "@/components/theme";
-import { reducedMotion } from "@/components/zoom";
+import { reducedMotion } from "@/components/motion";
 import { ditherInto } from "./dither";
 
 /**
  * A photo that "develops" as it scrolls into view: one-bit dither, then the
- * theme's four colours, then the full-colour original, in hard steps.
+ * theme's four colours, then the full-colour original, fading between stages.
  */
 export function DitherImage({ src, alt, className = "" }: { src: string; alt: string; className?: string }) {
 	const wrap = useRef<HTMLSpanElement>(null);
