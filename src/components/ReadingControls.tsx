@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 export const READING_FONTS = [
 	{ id: "sans", label: "Sans" },
@@ -87,8 +87,8 @@ function Segment<T extends string>({
 export function ReadingControls({ prefs }: { prefs: ReturnType<typeof useReadingPrefs> }) {
 	const sizePx: Record<ReadingSize, string> = { s: "12px", m: "15px", l: "19px" };
 	return (
-		<div className="flex flex-wrap items-center gap-3 px-3 py-2">
-			<span className="hidden font-ui text-xs sm:inline">Font</span>
+		<div className="grid grid-cols-[auto_auto] items-center gap-x-3 gap-y-2">
+			<span className="font-ui text-xs">Font</span>
 			<Segment
 				label="Reading font"
 				attr="data-font-opt"
@@ -106,7 +106,7 @@ export function ReadingControls({ prefs }: { prefs: ReturnType<typeof useReading
 					</span>
 				)}
 			/>
-			<span className="hidden font-ui text-xs sm:inline">Size</span>
+			<span className="font-ui text-xs">Size</span>
 			<Segment
 				label="Text size"
 				attr="data-size-opt"
@@ -115,6 +115,55 @@ export function ReadingControls({ prefs }: { prefs: ReturnType<typeof useReading
 				onChange={prefs.setSize}
 				render={(o) => <span style={{ fontSize: sizePx[o.id as ReadingSize] }}>{o.label}</span>}
 			/>
+		</div>
+	);
+}
+
+/**
+ * The reading controls, tucked behind an "Aa" button in the title bar so they
+ * don't sit over every article. Closes on a click outside or Escape.
+ */
+export function ReadingMenu({ prefs }: { prefs: ReturnType<typeof useReadingPrefs> }) {
+	const [open, setOpen] = useState(false);
+	const wrap = useRef<HTMLDivElement>(null);
+	const id = useId();
+	useEffect(() => {
+		if (!open) return;
+		const away = (e: PointerEvent) => {
+			if (!wrap.current?.contains(e.target as Node)) setOpen(false);
+		};
+		// Capture, so Escape closes this menu before it reaches the article (which would close too).
+		const esc = (e: KeyboardEvent) => {
+			if (e.key !== "Escape") return;
+			e.preventDefault();
+			e.stopPropagation();
+			setOpen(false);
+		};
+		window.addEventListener("pointerdown", away);
+		window.addEventListener("keydown", esc, true);
+		return () => {
+			window.removeEventListener("pointerdown", away);
+			window.removeEventListener("keydown", esc, true);
+		};
+	}, [open]);
+	return (
+		<div ref={wrap} className="relative flex">
+			<button
+				type="button"
+				aria-expanded={open}
+				aria-controls={id}
+				aria-label="Text settings"
+				title="Text settings"
+				onClick={() => setOpen(!open)}
+				className={`relative border-2 border-black px-2 font-ui text-xs leading-4 after:absolute after:-inset-2 after:content-[''] hover:bg-black hover:text-white ${open ? "bg-black text-white" : "bg-white"}`}
+			>
+				Aa
+			</button>
+			{open && (
+				<div id={id} role="dialog" aria-label="Text settings" className="win menu-drop absolute top-full right-0 z-10 mt-2 p-3 text-black">
+					<ReadingControls prefs={prefs} />
+				</div>
+			)}
 		</div>
 	);
 }

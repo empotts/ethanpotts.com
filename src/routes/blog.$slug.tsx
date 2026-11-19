@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Suspense, useCallback, useEffect, useRef } from "react";
 import { FullscreenModal } from "@/components/FullscreenModal";
-import { ReadingControls, useReadingPrefs } from "@/components/ReadingControls";
+import { ReadingMenu, useReadingPrefs } from "@/components/ReadingControls";
 import { ShareButton } from "@/components/ShareButton";
 import { formatDay } from "@/lib/dates";
 import { SITE_URL, seo } from "@/lib/seo";
@@ -104,8 +104,12 @@ function Post() {
 			title={`${post.slug}.${post.kind === "mdx" ? "mdx" : "txt"}`}
 			label={data.title}
 			onClose={close}
-			toolbar={<ReadingControls prefs={prefs} />}
-			actions={<ShareButton title={data.title} text={data.description} />}
+			actions={
+				<div className="flex items-center gap-2">
+					<ReadingMenu prefs={prefs} />
+					<ShareButton title={data.title} text={data.description} />
+				</div>
+			}
 			progress
 			theme={data.theme}
 			accent={data.accent}
