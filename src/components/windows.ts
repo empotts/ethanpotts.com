@@ -150,9 +150,9 @@ export const boot = { hydrated: false };
 
 /*
  * A tiling window manager's layout on wide screens: windows fill the desk with
- * even gaps and never overlap. In opening order, each window takes half of what
- * is left, split along the longer side, and the last takes the rest (a dwindle
- * layout). Tiled windows can't be dragged; closing one lets the others grow back.
+ * even gaps, never overlap and share it equally, in opening order across rows:
+ * one fills it, two take half each, four a quarter each. Tiled windows can't be
+ * dragged; closing one lets the others grow back.
  */
 const TILE_KEY = "ep-tile";
 /** Tiling applies from this width up; narrower desktops keep free placement. */
@@ -196,25 +196,23 @@ const subscribeTile = (cb: () => void) => {
 export const useTileSetting = () => useSyncExternalStore(subscribeTile, () => tileOn, () => false);
 const useView = () => useSyncExternalStore(subscribeTile, () => view, () => null);
 
-function dwindle(ids: WinId[], vw: number, vh: number): Map<WinId, Tile> {
+function grid(ids: WinId[], vw: number, vh: number): Map<WinId, Tile> {
 	const g = DESK.gap;
-	let area = { x: g, y: DESK.top + g, w: vw - DESK.icons - 2 * g, h: vh - DESK.top - 2 * g };
+	const area = { x: g, y: DESK.top + g, w: vw - DESK.icons - 2 * g, h: vh - DESK.top - 2 * g };
+	const n = ids.length;
+	// As many rows as keeps the tiles closest to the desk's own shape: halves, then thirds or quarters…
+	const rows = Math.max(1, Math.min(n, Math.round(Math.sqrt((n * area.h) / area.w))));
 	const tiles = new Map<WinId, Tile>();
-	ids.forEach((id, i) => {
-		if (i === ids.length - 1) {
-			tiles.set(id, area);
-			return;
+	let i = 0;
+	for (let r = 0; r < rows; r++) {
+		// Spread the windows evenly; later rows take any extra.
+		const inRow = Math.floor(n / rows) + (r >= rows - (n % rows) ? 1 : 0);
+		const h = (area.h - g * (rows - 1)) / rows;
+		const w = (area.w - g * (inRow - 1)) / inRow;
+		for (let c = 0; c < inRow; c++, i++) {
+			tiles.set(ids[i], { x: Math.round(area.x + c * (w + g)), y: Math.round(area.y + r * (h + g)), w: Math.round(w), h: Math.round(h) });
 		}
-		if (area.w >= area.h) {
-			const w = Math.round((area.w - g) / 2);
-			tiles.set(id, { ...area, w });
-			area = { ...area, x: area.x + w + g, w: area.w - w - g };
-		} else {
-			const h = Math.round((area.h - g) / 2);
-			tiles.set(id, { ...area, h });
-			area = { ...area, y: area.y + h + g, h: area.h - h - g };
-		}
-	});
+	}
 	return tiles;
 }
 
@@ -229,5 +227,5 @@ export function useTile(id: WinId): Tile | null {
 	const v = useView();
 	if (!on || !v || v.w < TILE_MIN || maximized.includes(id)) return null;
 	const ids = (open.includes(id) ? open : [...open, id]).filter((x) => !maximized.includes(x));
-	return dwindle(ids, v.w, v.h).get(id) ?? null;
+	return grid(ids, v.w, v.h).get(id) ?? null;
 }
