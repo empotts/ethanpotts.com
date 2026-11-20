@@ -1,7 +1,7 @@
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { Suspense, useEffect, useRef, useState } from "react";
 import type { AppDef } from "@/apps/define";
-import { appBody, apps, appsIn, getApp, hasWindow, preloadApp, routeWin } from "@/apps/index";
+import { appBody, apps, appsIn, hasWindow, preloadApp, routeWin } from "@/apps/index";
 import type { Info } from "@/apps/info/app";
 import type { PostSummary } from "@/posts/worker";
 import { DesktopDataContext, desktopActions } from "./desktop/data";
@@ -11,7 +11,7 @@ import { type IconName, PixelIcon } from "./icons";
 import { Logo } from "./Logo";
 import { Wallpaper } from "./Wallpaper";
 import { AppFrameContext, DeskRef } from "./Window";
-import { closeWin, emptyTrash, openWin, trashTarget, useWindows } from "./windows";
+import { clearScreen, closeWin, openWin, trashTarget, useWindows } from "./windows";
 
 /** A desktop icon. Option/Alt + double-click (or Alt+Enter) opens Get Info instead. */
 function DeskIcon({ id, icon, label, onOpen, info }: DesktopApp) {
@@ -64,7 +64,6 @@ export function Desktop({ posts, children }: { posts: PostSummary[]; children: R
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
 	const current = routeWin(pathname);
 	const { open, order, gen, trashed, opened, payload, seq } = useWindows();
-	const [trash, setTrash] = useState(false);
 
 	useTypedWords({ hogs: () => openWin("pregame"), band: () => openWin("pregame"), ride: () => openWin("singletrack") });
 	useEffect(greet, []);
@@ -116,8 +115,9 @@ export function Desktop({ posts, children }: { posts: PostSummary[]; children: R
 		id: "trash",
 		icon: (trashed.length ? "trashFull" : "trash") satisfies IconName,
 		label: "Trash",
-		onOpen: () => setTrash(true),
-		info: [["Kind", "Trash"], ["Items", String(trashed.length)]],
+		// Clears the screen: every open window goes in the Trash. On a clear desk it empties the Trash.
+		onOpen: clearScreen,
+		info: [["Kind", "Trash"], ["Click", open.length ? "Clears the screen" : "Empties the Trash"], ["Items", String(trashed.length)]],
 	};
 	const active = order[order.length - 1];
 
@@ -150,37 +150,6 @@ export function Desktop({ posts, children }: { posts: PostSummary[]; children: R
 							))}
 					</div>
 					{children}
-					{trash && (
-						<div className="fixed inset-0 z-[200] flex items-center justify-center bg-white/50">
-							<div className="win pop-in relative w-80 p-5" role="alertdialog" aria-label="Trash">
-								<div className="flex gap-4">
-									<PixelIcon name={trashed.length ? "trashFull" : "trash"} size={40} />
-									{trashed.length ? (
-										<p className="text-sm">In the Trash: {trashed.map((id) => getApp(id)?.title ?? id).join(", ")}.</p>
-									) : (
-										<p className="text-sm">The Trash is empty. Everything here was worth keeping.</p>
-									)}
-								</div>
-								<div className="mt-5 flex justify-end gap-3">
-									{trashed.length > 0 && (
-										<button
-											type="button"
-											className="btn"
-											onClick={() => {
-												emptyTrash();
-												setTrash(false);
-											}}
-										>
-											Empty Trash
-										</button>
-									)}
-									<button type="button" className="btn btn-default" onClick={() => setTrash(false)}>
-										OK
-									</button>
-								</div>
-							</div>
-						</div>
-					)}
 				</div>
 			</DeskRef.Provider>
 		</DesktopDataContext.Provider>

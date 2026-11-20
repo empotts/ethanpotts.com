@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { AppDef } from "@/apps/define";
 import { TrafficLights } from "./TrafficLights";
-import { boot, focusWin, iconRect, takeOrigin, toggleMaximize, trashTarget, trashWin, useTile, useWindows, type WinId } from "./windows";
+import { binners, boot, focusWin, iconRect, takeOrigin, toggleMaximize, trashTarget, trashWin, useTile, useWindows, type WinId } from "./windows";
 import { centerOf, ditherSweep, originFor, reducedMotion } from "./motion";
 
 export const DeskRef = createContext<React.RefObject<HTMLDivElement | null> | null>(null);
@@ -148,9 +148,9 @@ function DeskWindow({ title: titleProp, children, footer, x: xProp, y: yProp, wi
 	};
 
 	// Dropped on the Trash: shrink and tumble into it, then go.
-	const trash = (bin: DOMRect) => {
+	const trash = (bin: DOMRect | undefined) => {
 		const node = el.current;
-		if (!node || reducedMotion()) {
+		if (!node || !bin?.width || reducedMotion()) {
 			trashWin(id);
 			close();
 			return;
@@ -164,6 +164,15 @@ function DeskWindow({ title: titleProp, children, footer, x: xProp, y: yProp, wi
 			close();
 		};
 	};
+	// Clicking the Trash throws every window in it.
+	const binRef = useRef(trash);
+	binRef.current = trash;
+	useEffect(() => {
+		binners.set(id, () => binRef.current(trashTarget.el?.getBoundingClientRect()));
+		return () => {
+			binners.delete(id);
+		};
+	}, [id]);
 
 	// Dragging by the title bar, kept inside the desk. Starts after a few pixels so
 	// clicks and double-clicks on the bar still work.

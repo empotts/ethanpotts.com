@@ -120,6 +120,17 @@ export function emptyTrash() {
 }
 /** The Trash icon element, so a window drop can be tested against it. */
 export const trashTarget: { el: HTMLElement | null } = { el: null };
+/** Each open desk window's way of throwing itself in the Trash, so the Trash can clear the screen. */
+export const binners = new Map<WinId, () => void>();
+/**
+ * Clicking the Trash: with windows on screen, they all tumble into it, one just
+ * after another; on a clear desk, a full Trash is emptied.
+ */
+export function clearScreen() {
+	const ids = state.order.filter((id) => binners.has(id)).reverse();
+	if (!ids.length) return emptyTrash();
+	ids.forEach((id, i) => setTimeout(() => binners.get(id)?.(), i * 60));
+}
 
 export function useWindows() {
 	return useSyncExternalStore(
