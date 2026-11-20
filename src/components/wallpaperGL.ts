@@ -330,15 +330,13 @@ export function startGL(canvas: HTMLCanvasElement): (() => void) | null {
 	wallpaperShot.grab = (target) => {
 		// Draw and copy in the same task: WebGL clears the canvas once the frame is shown.
 		draw(performance.now());
-		// Copied at scene resolution (half the dither's on most screens): plenty for the
-		// Camera's viewfinder and a quarter of the pixels to process. Nearest-pixel
-		// sampling keeps it dithered.
-		target.width = Math.round((w * px) / SCENE);
-		target.height = Math.round((h * px) / SCENE);
+		// Copied pixel for pixel. Scaling down would sample the dither pattern unevenly
+		// and the viewfinder turns into stripes.
+		target.width = w;
+		target.height = h;
 		const o = target.getContext("2d");
 		if (!o) return false;
-		o.imageSmoothingEnabled = false;
-		o.drawImage(canvas, 0, 0, target.width, target.height);
+		o.drawImage(canvas, 0, 0);
 		return true;
 	};
 

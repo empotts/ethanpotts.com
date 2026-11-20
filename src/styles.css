@@ -257,7 +257,9 @@ p, li { text-wrap: pretty; }
 .border-2.border-black { border-radius: 6px; }
 
 /* The dithered drop shadow: two strips just outside the right and bottom edges.
-   The strips need a positioned box; layered so utilities like `fixed` still win. */
+   The strips need a positioned box; layered so utilities like `fixed` still win.
+   Ink and paper, not ink and transparent: see-through cells beat against the dithered
+   wallpaper, so the shadow faded or darkened as a window moved by a pixel. */
 @layer components {
 	.win { position: relative; }
 }
@@ -265,7 +267,7 @@ p, li { text-wrap: pretty; }
 	content: "";
 	position: absolute;
 	pointer-events: none;
-	background: conic-gradient(var(--fg) 25%, transparent 0 50%, var(--fg) 0 75%, transparent 0) 0 0 / 2px 2px;
+	background: conic-gradient(var(--fg) 25%, var(--bg) 0 50%, var(--fg) 0 75%, var(--bg) 0) 0 0 / 2px 2px;
 }
 .win::before { top: calc(var(--win-r) + 2px); right: -7px; width: 5px; bottom: -2px; }
 .win::after { left: calc(var(--win-r) + 2px); right: -7px; bottom: -7px; height: 5px; border-bottom-right-radius: 3px; }
