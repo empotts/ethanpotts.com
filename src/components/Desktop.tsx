@@ -87,6 +87,16 @@ export function Desktop({ posts, children }: { posts: PostSummary[]; children: R
 		else if (current === "post") navigate({ to: "/" });
 	}, [opened, current, navigate]);
 
+	// "Clean up desktop" leaves only About, so it leaves any page's address too. Otherwise
+	// the page's window (Writing on /blog) would stay on screen without being one of the
+	// open windows, and tiling would lay About over it.
+	const genAt = useRef(gen);
+	useEffect(() => {
+		if (gen === genAt.current) return;
+		genAt.current = gen;
+		if (current) navigate({ to: "/" });
+	}, [gen, current, navigate]);
+
 	const visible = new Set(open);
 	if (current && current !== "post") visible.add(current);
 
