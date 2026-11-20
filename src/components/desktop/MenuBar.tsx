@@ -121,8 +121,9 @@ function AppShortcut({ app, onLaunch, compact = false }: { app: DesktopApp; onLa
 function TileToggle() {
 	const on = useTileSetting();
 	return (
-		<button type="button" aria-pressed={on} className="hidden min-h-11 w-full items-center gap-2 px-3 text-left hover:bg-black hover:text-white min-[900px]:flex" onClick={() => setTiled(!on)}>
-			<span className="w-3" aria-hidden>{on ? "✓" : ""}</span>Tile windows
+		<button type="button" aria-pressed={on} className="hidden min-h-11 w-full items-center justify-between gap-3 px-3 text-left hover:bg-black hover:text-white min-[900px]:flex" onClick={() => setTiled(!on)}>
+			Tile windows
+			<span aria-hidden>{on ? "✓" : ""}</span>
 		</button>
 	);
 }
