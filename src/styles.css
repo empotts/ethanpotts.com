@@ -150,6 +150,24 @@ p, li { text-wrap: pretty; }
 .desk-win[data-max] .game-wrap { min-height: 100%; display: flex; flex-direction: column; justify-content: center; }
 .desk-win[data-max] .game-stage { width: min(100%, calc((100dvh - var(--bar-h) - 9rem) * 16 / 9)); margin-inline: auto; }
 
+/* Tiled mode: each window fills its tile (windows.ts), its contents scroll, and
+   tiles glide to their new size as windows open and close. */
+@media (min-width: 900px) {
+	.desk-win[data-tiled] {
+		left: var(--tx);
+		top: var(--ty);
+		width: var(--tw);
+		height: var(--th);
+		max-height: none;
+	}
+	.desk-win[data-tiled] [data-win-body] { height: auto; flex: 1 1 0; }
+	.desk-win[data-tiled] .game-wrap { min-height: 100%; display: flex; flex-direction: column; justify-content: center; }
+	.desk-win[data-tiled] .game-stage { width: min(100%, calc((var(--th) - 9rem) * 16 / 9)); margin-inline: auto; }
+}
+@media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+	.desk-win[data-tiled]:not([data-boot]) { transition: left 0.3s var(--ease-soft), top 0.3s var(--ease-soft), width 0.3s var(--ease-soft), height 0.3s var(--ease-soft); }
+}
+
 /* Close, minimize, maximize: coral, orange and the accent, softened toward the paper. */
 :root {
 	--tl-close: color-mix(in oklab, var(--rose) 72%, var(--bg));

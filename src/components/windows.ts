@@ -134,3 +134,89 @@ export function useWindows() {
 
 /** False until the visitor first clicks, taps or types; windows present at load skip their entrance animation. */
 export const boot = { hydrated: false };
+
+/* ---------- Tiled mode ---------- */
+
+/*
+ * A tiling window manager's layout on wide screens: windows fill the desk with
+ * even gaps and never overlap. In opening order, each window takes half of what
+ * is left, split along the longer side, and the last takes the rest (a dwindle
+ * layout). Tiled windows can't be dragged; closing one lets the others grow back.
+ */
+const TILE_KEY = "ep-tile";
+/** Tiling applies from this width up; narrower desktops keep free placement. */
+const TILE_MIN = 900;
+/** Gaps, the menu bar above and the icon columns on the right. */
+const DESK = { gap: 12, top: 32, icons: 196 };
+
+export type Tile = { x: number; y: number; w: number; h: number };
+
+let tileOn = false;
+let view = { w: 0, h: 0 };
+const tileSubs = new Set<() => void>();
+const tileEmit = () => {
+	for (const s of tileSubs) s();
+};
+if (typeof window !== "undefined") {
+	try {
+		tileOn = localStorage.getItem(TILE_KEY) === "on";
+	} catch {}
+	const measure = () => {
+		view = { w: window.innerWidth, h: window.innerHeight };
+	};
+	measure();
+	window.addEventListener("resize", () => {
+		measure();
+		tileEmit();
+	});
+}
+export function setTiled(on: boolean) {
+	tileOn = on;
+	try {
+		localStorage.setItem(TILE_KEY, on ? "on" : "off");
+	} catch {}
+	tileEmit();
+}
+const subscribeTile = (cb: () => void) => {
+	tileSubs.add(cb);
+	return () => tileSubs.delete(cb);
+};
+/** The setting, false while server rendering so the first paint matches the server's. */
+export const useTileSetting = () => useSyncExternalStore(subscribeTile, () => tileOn, () => false);
+const useView = () => useSyncExternalStore(subscribeTile, () => view, () => null);
+
+function dwindle(ids: WinId[], vw: number, vh: number): Map<WinId, Tile> {
+	const g = DESK.gap;
+	let area = { x: g, y: DESK.top + g, w: vw - DESK.icons - 2 * g, h: vh - DESK.top - 2 * g };
+	const tiles = new Map<WinId, Tile>();
+	ids.forEach((id, i) => {
+		if (i === ids.length - 1) {
+			tiles.set(id, area);
+			return;
+		}
+		if (area.w >= area.h) {
+			const w = Math.round((area.w - g) / 2);
+			tiles.set(id, { ...area, w });
+			area = { ...area, x: area.x + w + g, w: area.w - w - g };
+		} else {
+			const h = Math.round((area.h - g) / 2);
+			tiles.set(id, { ...area, h });
+			area = { ...area, y: area.y + h + g, h: area.h - h - g };
+		}
+	});
+	return tiles;
+}
+
+/**
+ * This window's tile, or null when tiling is off, the screen is narrow or the
+ * window is maximized. `id` counts as the newest window if it isn't open yet: a
+ * window opened by a link renders for a moment before it's added to the list.
+ */
+export function useTile(id: WinId): Tile | null {
+	const { open, maximized } = useWindows();
+	const on = useTileSetting();
+	const v = useView();
+	if (!on || !v || v.w < TILE_MIN || maximized.includes(id)) return null;
+	const ids = (open.includes(id) ? open : [...open, id]).filter((x) => !maximized.includes(x));
+	return dwindle(ids, v.w, v.h).get(id) ?? null;
+}

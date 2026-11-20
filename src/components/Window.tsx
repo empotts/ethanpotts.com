@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { AppDef } from "@/apps/define";
 import { TrafficLights } from "./TrafficLights";
-import { boot, focusWin, iconRect, takeOrigin, toggleMaximize, trashTarget, trashWin, useWindows, type WinId } from "./windows";
+import { boot, focusWin, iconRect, takeOrigin, toggleMaximize, trashTarget, trashWin, useTile, useWindows, type WinId } from "./windows";
 import { centerOf, ditherSweep, originFor, reducedMotion } from "./motion";
 
 export const DeskRef = createContext<React.RefObject<HTMLDivElement | null> | null>(null);
@@ -81,6 +81,9 @@ function DeskWindow({ title: titleProp, children, footer, x: xProp, y: yProp, wi
 	const z = order.indexOf(id) + 10;
 	const active = order[order.length - 1] === id;
 	const max = maximized.includes(id);
+	// Tiled mode (wide screens) gives the window a fixed tile; it can't be dragged out of it.
+	const tile = useTile(id);
+	const fixed = max || !!tile;
 	// On the phone stack a window not yet in the list is the newest.
 	const stackIndex = open.includes(id) ? open.indexOf(id) : open.length;
 	const el = useRef<HTMLElement>(null);
@@ -116,19 +119,20 @@ function DeskWindow({ title: titleProp, children, footer, x: xProp, y: yProp, wi
 		// biome-ignore lint/correctness/useExhaustiveDependencies: runs once as the window mounts
 	}, []);
 
-	// Maximizing snaps the window back from wherever it was dragged. On phones the
-	// page behind a maximized window stops scrolling.
+	// Maximizing or tiling snaps the window back from wherever it was dragged.
 	useEffect(() => {
-		if (!max) return;
-		moveTo(0, 0);
-		if (!narrow) return;
+		if (fixed) moveTo(0, 0);
+		// biome-ignore lint/correctness/useExhaustiveDependencies: moveTo only touches the element
+	}, [fixed]);
+	// On phones the page behind a maximized window stops scrolling.
+	useEffect(() => {
+		if (!max || !narrow) return;
 		const root = document.documentElement;
 		const { overflow } = root.style;
 		root.style.overflow = "hidden";
 		return () => {
 			root.style.overflow = overflow;
 		};
-		// biome-ignore lint/correctness/useExhaustiveDependencies: moveTo only touches the element
 	}, [max, narrow]);
 	const maximize = () => {
 		focusWin(id);
@@ -166,7 +170,7 @@ function DeskWindow({ title: titleProp, children, footer, x: xProp, y: yProp, wi
 	const startDrag = (e: React.PointerEvent<HTMLElement>) => {
 		const node = el.current;
 		const area = desk?.current;
-		if (narrow || max || e.button !== 0 || !node || !area || (e.target as Element).closest("button")) return;
+		if (narrow || fixed || e.button !== 0 || !node || !area || (e.target as Element).closest("button")) return;
 		const bar = e.currentTarget;
 		const sx = e.clientX;
 		const sy = e.clientY;
@@ -208,6 +212,7 @@ function DeskWindow({ title: titleProp, children, footer, x: xProp, y: yProp, wi
 			onPointerDown={() => focusWin(id)}
 			className="win desk-win flex flex-col"
 			data-max={max ? "" : undefined}
+			data-tiled={tile ? "" : undefined}
 			// Windows already there on first load rise in with CSS instead.
 			data-boot={animateIn ? undefined : ""}
 			style={
@@ -216,6 +221,7 @@ function DeskWindow({ title: titleProp, children, footer, x: xProp, y: yProp, wi
 					"--y": `${y0}px`,
 					"--w": `${w0}px`,
 					"--h": cfg?.height ? `${cfg.height}px` : undefined,
+					...(tile && { "--tx": `${tile.x}px`, "--ty": `${tile.y}px`, "--tw": `${tile.w}px`, "--th": `${tile.h}px` }),
 					"--stack-order": stackIndex,
 					zIndex: z,
 					// Hidden (but laid out) while the sweep fills its place.
@@ -227,7 +233,7 @@ function DeskWindow({ title: titleProp, children, footer, x: xProp, y: yProp, wi
 			<header
 				onPointerDown={startDrag}
 				onDoubleClick={() => !narrow && maximize()}
-				className={`relative flex h-7 shrink-0 cursor-grab items-center border-b-2 border-black px-2 py-1 select-none active:cursor-grabbing ${active ? "titlebar" : ""} ${max ? "cursor-default" : ""}`}
+				className={`relative flex h-7 shrink-0 items-center border-b-2 border-black px-2 py-1 select-none ${fixed ? "cursor-default" : "cursor-grab active:cursor-grabbing"} ${active ? "titlebar" : ""}`}
 			>
 				<TrafficLights title={title} onClose={requestClose} onMaximize={maximize} maximized={max} dim={!active} />
 				<h2 className="pointer-events-none absolute left-1/2 max-w-[calc(100%-9rem)] -translate-x-1/2 truncate bg-white px-2 font-ui text-sm leading-none">{title}</h2>
