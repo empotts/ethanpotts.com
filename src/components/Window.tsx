@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { AppDef } from "@/apps/define";
 import { TrafficLights } from "./TrafficLights";
-import { boot, dropInRow, focusWin, iconRect, takeOrigin, toggleMaximize, trashTarget, trashWin, useSnapLayout, useWindows, type WinId } from "./windows";
+import { boot, focusWin, iconRect, takeOrigin, toggleMaximize, trashTarget, trashWin, useWindows, type WinId } from "./windows";
 import { centerOf, ditherSweep, originFor, reducedMotion } from "./motion";
 
 export const DeskRef = createContext<React.RefObject<HTMLDivElement | null> | null>(null);
@@ -81,21 +81,15 @@ function DeskWindow({ title: titleProp, children, footer, x: xProp, y: yProp, wi
 	const z = order.indexOf(id) + 10;
 	const active = order[order.length - 1] === id;
 	const max = maximized.includes(id);
-	// Snap view (wide screens) places the window in the row; otherwise it sits where its app says.
-	const slot = useSnapLayout(id)?.get(id);
-	// Same idea for the phone stack: a window not yet in the list is the newest.
+	// On the phone stack a window not yet in the list is the newest.
 	const stackIndex = open.includes(id) ? open.indexOf(id) : open.length;
-	const x = slot?.x ?? x0;
-	const y = slot?.y ?? y0;
 	const el = useRef<HTMLElement>(null);
 	/** How far the window has been dragged from its place, applied as a transform. */
 	const offset = useRef({ x: 0, y: 0 });
-	const moveTo = (x: number, y: number, glide = false) => {
+	const moveTo = (x: number, y: number) => {
 		const node = el.current;
 		if (!node) return;
 		offset.current = { x, y };
-		// Gliding eases the drag offset and the snap place together, so the window travels in one smooth line.
-		node.style.transition = glide && !reducedMotion() ? "transform 0.3s var(--ease-soft), left 0.3s var(--ease-soft), top 0.3s var(--ease-soft)" : "";
 		node.style.transform = x || y ? `translate(${x}px, ${y}px)` : "";
 	};
 
@@ -201,13 +195,7 @@ function DeskWindow({ title: titleProp, children, footer, x: xProp, y: yProp, wi
 			if (!moving) return;
 			document.body.style.userSelect = "";
 			const bin = trashTarget.el?.getBoundingClientRect();
-			if (bin && ev.clientX >= bin.left && ev.clientX <= bin.right && ev.clientY >= bin.top && ev.clientY <= bin.bottom) return trash(bin);
-			// In snap view a dropped window takes its new place in the row and glides into it.
-			if (slot) {
-				const r = node.getBoundingClientRect();
-				dropInRow(id, r.left + r.width / 2);
-				moveTo(0, 0, true);
-			}
+			if (bin && ev.clientX >= bin.left && ev.clientX <= bin.right && ev.clientY >= bin.top && ev.clientY <= bin.bottom) trash(bin);
 		};
 		window.addEventListener("pointermove", move);
 		window.addEventListener("pointerup", up);
@@ -222,12 +210,10 @@ function DeskWindow({ title: titleProp, children, footer, x: xProp, y: yProp, wi
 			data-max={max ? "" : undefined}
 			// Windows already there on first load rise in with CSS instead.
 			data-boot={animateIn ? undefined : ""}
-			// Glide between snap places once the visitor is using the desk (not on first paint).
-			data-glide={slot && boot.hydrated ? "" : undefined}
 			style={
 				{
-					"--x": `${x}px`,
-					"--y": `${y}px`,
+					"--x": `${x0}px`,
+					"--y": `${y0}px`,
 					"--w": `${w0}px`,
 					"--h": cfg?.height ? `${cfg.height}px` : undefined,
 					"--stack-order": stackIndex,

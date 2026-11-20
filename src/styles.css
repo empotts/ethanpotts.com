@@ -190,10 +190,6 @@ p, li { text-wrap: pretty; }
 
 /* One easing for everything that moves: quick start, long soft landing. */
 :root { --ease-soft: cubic-bezier(0.2, 0.7, 0.2, 1); }
-/* Snap view: windows glide to their new place in the row. */
-@media (min-width: 721px) and (prefers-reduced-motion: no-preference) {
-	.desk-win[data-glide] { transition: left 0.3s var(--ease-soft), top 0.3s var(--ease-soft); }
-}
 
 /* Full-screen pages open with a dithered sweep drawn on this canvas (motion.ts). */
 .sweep-layer {

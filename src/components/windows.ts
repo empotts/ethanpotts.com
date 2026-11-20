@@ -1,5 +1,4 @@
 import { useSyncExternalStore } from "react";
-import { getApp } from "@/apps/index";
 
 /**
  * The window manager's state. Window ids are app ids from `src/apps` (plus
@@ -131,97 +130,6 @@ export function useWindows() {
 		() => state,
 		() => initial,
 	);
-}
-
-/* ---------- Snap view ---------- */
-
-/*
- * On wide screens open windows line up in a row, in opening order, top-aligned
- * under the menu bar. When they don't all fit they fan out evenly instead of
- * piling up. Dropping a dragged window moves it to that place in the row.
- */
-const SNAP_KEY = "ep-snap";
-/** Snap view applies from this width up; narrower desktops keep free placement. */
-const SNAP_MIN = 900;
-const ROW = { left: 60, top: 40, gap: 20, icons: 230 };
-
-let snapOn = true;
-let viewW = 0;
-const snapSubs = new Set<() => void>();
-const snapEmit = () => {
-	for (const s of snapSubs) s();
-};
-if (typeof window !== "undefined") {
-	try {
-		snapOn = localStorage.getItem(SNAP_KEY) !== "off";
-	} catch {}
-	viewW = window.innerWidth;
-	window.addEventListener("resize", () => {
-		viewW = window.innerWidth;
-		snapEmit();
-	});
-}
-export function setSnap(on: boolean) {
-	snapOn = on;
-	try {
-		localStorage.setItem(SNAP_KEY, on ? "on" : "off");
-	} catch {}
-	snapEmit();
-}
-const subscribeSnap = (cb: () => void) => {
-	snapSubs.add(cb);
-	return () => snapSubs.delete(cb);
-};
-export const useSnapSetting = () => useSyncExternalStore(subscribeSnap, () => snapOn, () => true);
-/** Viewport width, or 0 while server rendering (so the first paint matches the server's). */
-const useViewW = () => useSyncExternalStore(subscribeSnap, () => viewW, () => 0);
-
-const widthOf = (id: WinId) => getApp(id)?.window?.width ?? 420;
-/** Each snapped window's left/top, or null when snap view is off or the screen is narrow. */
-function snapRow(ids: WinId[], vw: number): Map<WinId, { x: number; y: number }> | null {
-	if (vw < SNAP_MIN || !ids.length) return null;
-	const widths = ids.map(widthOf);
-	const avail = vw - ROW.icons - ROW.left;
-	const total = widths.reduce((a, b) => a + b, 0) + ROW.gap * (ids.length - 1);
-	const row = new Map<WinId, { x: number; y: number }>();
-	let x = ROW.left;
-	// Too many to fit side by side: fan them out so each still shows its left edge.
-	const step = ids.length > 1 ? (avail - widths[widths.length - 1]) / (ids.length - 1) : 0;
-	ids.forEach((id, i) => {
-		row.set(id, { x: Math.round(total <= avail ? x : ROW.left + i * Math.max(28, step)), y: ROW.top });
-		x += widths[i] + ROW.gap;
-	});
-	return row;
-}
-
-/**
- * Where snap view puts each open window, or null when it is off. `id` counts as
- * the newest window if it isn't open yet: a window opened by a link renders for
- * a moment before it's added to the list, and must already be in its place.
- */
-export function useSnapLayout(id: WinId) {
-	const { open, maximized } = useWindows();
-	const on = useSnapSetting();
-	const vw = useViewW();
-	if (!on || !getApp(id)) return null;
-	const ids = open.includes(id) ? open : [...open, id];
-	return snapRow(ids.filter((x) => !maximized.includes(x)), vw);
-}
-
-/** Moves a window to the place in the row nearest `centerX` (a dropped window's middle). */
-export function dropInRow(id: WinId, centerX: number) {
-	const row = snapRow(state.open.filter((x) => !state.maximized.includes(x)), viewW);
-	if (!row) return;
-	const others = state.open.filter((x) => x !== id && row.has(x));
-	const at = others.filter((x) => {
-		const p = row.get(x);
-		return p ? p.x + widthOf(x) / 2 < centerX : false;
-	}).length;
-	const next = [...others.slice(0, at), id, ...others.slice(at)];
-	// Keep any maximized windows where they were in the opening order.
-	const rest = state.open.filter((x) => !row.has(x));
-	state = { ...state, open: [...next, ...rest] };
-	emit();
 }
 
 /** False until the visitor first clicks, taps or types; windows present at load skip their entrance animation. */
