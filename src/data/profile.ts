@@ -231,6 +231,17 @@ export const projects: Project[] = [
 		featured: true,
 	},
 	{
+		slug: "swatchboard",
+		name: "Swatchboard",
+		kind: "app",
+		year: "2026",
+		oneLiner: "Pantone colors and the teams, schools and brands that wear them.",
+		description: "324 Pantone colors from 420 teams, schools and brands. Flip a chip to see who uses it, search and filter the board, or try two color guessing games.",
+		stack: ["TypeScript", "JavaScript", "Cloudflare Workers", "Alchemy"],
+		href: "https://swatchboard.ethanmpotts.workers.dev",
+		color: "#d64a72",
+	},
+	{
 		slug: "cullmonster",
 		name: "CullMonster",
 		kind: "app",
